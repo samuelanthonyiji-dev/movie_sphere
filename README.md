@@ -56,6 +56,21 @@ The service worker is only registered in production builds; PWA install requires
 - **Legal**: copyright/takedown, privacy and terms templates (have them reviewed by counsel), contact and content-report forms.
 - **Accessibility**: skip link, landmarks, labelled controls, focus-trapped modals, visible focus, reduced-motion support, captions, table view for charts.
 
+## Deployment (Render + Supabase + Vercel)
+
+| Piece | Where | Notes |
+|---|---|---|
+| PostgreSQL | Supabase project `movie-sphere` (eu-central-1) | App connects as role `cinevault_app` via the Supavisor pooler (6543 transaction for runtime, 5432 session for migrations). RLS is enabled on every table so Supabase's public REST API exposes nothing. |
+| Object storage | Supabase Storage | `public-assets` (public: artwork, trailers, avatars) and `media` (private: films, HLS, subtitles; served only through short-lived signed URLs after authorization). |
+| API (+ PWA) | Render web service `movie-sphere-api` (Frankfurt) | `render.yaml`. Runs `prisma migrate deploy` on start. Also serves the built PWA with per-page SEO tags. |
+| Frontend | Vercel (root directory `web/`) | `web/vercel.json` rewrites `/api`, `/media`, `/sitemap.xml`, `/robots.txt` to Render, so cookies stay first-party. |
+
+Render environment variables: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `SUPABASE_URL`, **`SUPABASE_SECRET_KEY`** (Supabase → Project Settings → API Keys → secret/service_role key; required for private media and admin uploads), `STORAGE_DRIVER=supabase`, `PUBLIC_ORIGIN`, `TRUST_PROXY` (1 direct, 2 behind Vercel), `NODE_ENV=production`, `NODE_VERSION=22`.
+
+Uploading local sample media to Supabase: `SUPABASE_URL=… SUPABASE_SECRET_KEY=… npx tsx scripts/upload-storage.ts` (from `server/`).
+
+Free-tier caveats: Render free instances sleep after ~15 min idle (first request takes up to a minute); Supabase free projects pause after a week of inactivity. Large admin video uploads through Vercel's rewrite are subject to Vercel's request-size limits — upload large files against the Render URL instead.
+
 ## Rebranding
 
 Edit `web/src/config/brand.ts`, `web/public/manifest.webmanifest`, `web/index.html` and the icons in `web/public/icons/` (and `BRAND_NAME` env on the server).
