@@ -14,6 +14,9 @@ import { media } from './routes/media.js'
 import { misc } from './routes/misc.js'
 import { renderShell, robots, sitemap } from './seo.js'
 
+// Media and artwork may be redirected to object storage (e.g. Supabase) — allow that origin.
+const storageOrigin = process.env.SUPABASE_URL ? [new URL(process.env.SUPABASE_URL).origin] : []
+
 const app = express()
 // Number of proxies in front of the app (Render = 1; Vercel rewrite + Render = 2).
 app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1))
@@ -23,11 +26,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        imgSrc: ["'self'", 'data:', 'blob:'],
-        mediaSrc: ["'self'", 'blob:'],
+        imgSrc: ["'self'", 'data:', 'blob:', ...storageOrigin],
+        mediaSrc: ["'self'", 'blob:', ...storageOrigin],
         styleSrc: ["'self'", "'unsafe-inline'"],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'"],
+        connectSrc: ["'self'", ...storageOrigin],
         workerSrc: ["'self'", 'blob:'],
         frameSrc: ["'self'"],
         upgradeInsecureRequests: env.publicOrigin.startsWith('https:') ? [] : null,

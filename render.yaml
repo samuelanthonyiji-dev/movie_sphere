@@ -6,6 +6,7 @@ services:
     runtime: node
     region: frankfurt
     plan: free
+    # Builds the API and the PWA; the API also serves the PWA (with per-page SEO tags).
     buildCommand: npm ci --include=dev && npm run build -w server
     startCommand: npm run db:migrate -w server && npm start -w server
     healthCheckPath: /api/health
