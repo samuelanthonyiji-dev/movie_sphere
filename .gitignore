@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+server/storage/media
+server/storage/trailers
+server/storage/subtitles
+server/storage/images/uploads
+server/storage/images/avatars
+*.log

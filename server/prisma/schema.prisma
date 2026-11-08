@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum TitleType {
+  MOVIE
+  SERIES
+}
+
+/// Legal basis for distributing a file. Only AUTHORIZED files are ever served.
+enum AuthorizationStatus {
+  PENDING
+  AUTHORIZED
+  REVOKED
+}
+
+/// Legal basis for listing/distributing a title.
+enum RightsBasis {
+  PUBLIC_DOMAIN
+  LICENSED
+  CREATOR_AUTHORIZED
+  PLATFORM_ORIGINAL
+  METADATA_ONLY
+}
+
+model User {
+  id             String    @id @default(cuid())
+  username       String    @unique
+  email          String    @unique
+  passwordHash   String
+  displayName    String?
+  avatarUrl      String?
+  role           Role      @default(USER)
+  preferences    Json      @default("{}")
+  resetTokenHash String?
+  resetExpires   DateTime?
+  createdAt      DateTime  @default(now())
+
+  watchlist Watchlist[]
+  history   WatchHistory[]
+  ratings   Rating[]
+  downloads DownloadEvent[]
+}
+
+model Movie {
+  id               String      @id @default(cuid())
+  type             TitleType   @default(MOVIE)
+  title            String
+  originalTitle    String?
+  slug             String      @unique
+  tagline          String?
+  description      String
+  releaseYear      Int
+  runtime          Int // minutes (per episode for series)
+  rating           Float // editorial CineVault score, 0-10
+  ageRating        String      @default("NR")
+  country          String
+  language         String
+  director         String
+  cast             String[]
+  production       String?
+  posterUrl        String?
+  backdropUrl      String?
+  trailerUrl       String?
+  rightsBasis      RightsBasis @default(METADATA_ONLY)
+  rightsNote       String?
+  popularity       Int         @default(0)
+  downloadCount    Int         @default(0)
+  featured         Boolean     @default(false)
+  isPublished      Boolean     @default(true)
+  /// Lower-cased denormalised text for search (title, original title, director, cast, country, language, genres, year)
+  searchText       String      @default("")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  genres      MovieGenre[]
+  files       MovieFile[]
+  subtitles   Subtitle[]
+  episodes    Episode[]
+  watchlist   Watchlist[]
+  history     WatchHistory[]
+  ratings     Rating[]
+  collections CollectionMovie[]
+  downloads   DownloadEvent[]
+
+  @@index([releaseYear])
+  @@index([rating])
+  @@index([popularity])
+  @@index([country])
+  @@index([language])
+  @@index([createdAt])
+  @@index([type])
+  @@index([title])
+}
+
+model Genre {
+  id     String       @id @default(cuid())
+  name   String       @unique
+  slug   String       @unique
+  movies MovieGenre[]
+}
+
+model MovieGenre {
+  movieId String
+  genreId String
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@id([movieId, genreId])
+  @@index([genreId])
+}
+
+model MovieFile {
+  id                  String              @id @default(cuid())
+  movieId             String
+  quality             String // 480p | 720p | 1080p | 2160p
+  format              String // mp4 | webm | hls
+  mimeType            String
+  fileSize            BigInt
+  storageKey          String // key inside object storage, never a public URL
+  language            String
+  authorizationStatus AuthorizationStatus @default(PENDING)
+  authorizationNote   String?
+  downloadable        Boolean             @default(true)
+  streamable          Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  movie               Movie               @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  downloads           DownloadEvent[]
+
+  @@index([movieId])
+}
+
+model Subtitle {
+  id         String @id @default(cuid())
+  movieId    String
+  language   String
+  label      String
+  format     String // vtt | srt
+  storageKey String
+  movie      Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@index([movieId])
+}
+
+model Episode {
+  id       String  @id @default(cuid())
+  movieId  String
+  season   Int
+  number   Int
+  title    String
+  runtime  Int
+  synopsis String?
+  movie    Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, season, number])
+}
+
+model Watchlist {
+  userId    String
+  movieId   String
+  favorite  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+}
+
+model WatchHistory {
+  userId           String
+  movieId          String
+  playbackPosition Float    @default(0)
+  duration         Float    @default(0)
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie            Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+  @@index([userId, updatedAt])
+}
+
+model Rating {
+  userId    String
+  movieId   String
+  rating    Int // 1-10
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+}
+
+model DownloadEvent {
+  id        String    @id @default(cuid())
+  userId    String?
+  movieId   String
+  fileId    String
+  createdAt DateTime  @default(now())
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  movie     Movie     @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  file      MovieFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+model Collection {
+  id          String            @id @default(cuid())
+  title       String
+  slug        String            @unique
+  description String?
+  sortOrder   Int               @default(0)
+  movies      CollectionMovie[]
+}
+
+model CollectionMovie {
+  collectionId String
+  movieId      String
+  position     Int        @default(0)
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, movieId])
+}
+
+/// Configurable homepage rows managed from the admin dashboard.
+model HomeSection {
+  id        String  @id @default(cuid())
+  key       String  @unique
+  title     String
+  enabled   Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+model ContentReport {
+  id        String   @id @default(cuid())
+  kind      String // copyright | inappropriate | broken | other | contact
+  movieSlug String?
+  name      String
+  email     String
+  message   String
+  status    String   @default("open")
+  createdAt DateTime @default(now())
+}
