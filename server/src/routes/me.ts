@@ -52,7 +52,7 @@ me.post('/avatar', imageUpload.single('avatar'), async (req, res) => {
     throw new HttpError(400, 'That file is not a supported image (JPEG, PNG, WebP, GIF or AVIF).')
   }
   const key = `images/avatars/${req.user!.id}-${Date.now()}.webp`
-  await storage.put(key, img)
+  await storage.put(key, img, 'image/webp')
   const prev = await prisma.user.findUniqueOrThrow({ where: { id: req.user!.id } })
   const user = await prisma.user.update({ where: { id: req.user!.id }, data: { avatarUrl: `/media/${key}` } })
   if (prev.avatarUrl?.startsWith('/media/images/avatars/')) await storage.remove(prev.avatarUrl.slice('/media/'.length)).catch(() => {})

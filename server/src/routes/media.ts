@@ -77,12 +77,23 @@ media.get('/download/:fileId', async (req, res) => {
       prisma.movie.update({ where: { id: f.movieId }, data: { downloadCount: { increment: 1 } } }),
     ])
   }
+  // Object storage with signed URLs: hand the transfer off to the CDN after the checks above.
+  if (storage.signedUrl) {
+    res.setHeader('Cache-Control', 'no-store')
+    res.redirect(302, await storage.signedUrl(f.storageKey, { expiresIn: 6 * 3600, download: filename }))
+    return
+  }
   await sendObject(req, res, f.storageKey, f.mimeType, `attachment; filename="${filename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(filename)}`)
 })
 
 media.get('/stream/:fileId', async (req, res) => {
   const f = await authorizedFile(req.params.fileId)
   if (!f.streamable || f.format === 'hls') throw new HttpError(404, 'Streaming unavailable.')
+  if (storage.signedUrl) {
+    res.setHeader('Cache-Control', 'no-store')
+    res.redirect(302, await storage.signedUrl(f.storageKey, { expiresIn: 6 * 3600 }))
+    return
+  }
   await sendObject(req, res, f.storageKey, f.mimeType, 'inline')
 })
 
@@ -117,6 +128,17 @@ media.get('/subtitles/:file', async (req, res) => {
   res.send(text)
 })
 
-// Public, non-sensitive assets: artwork, avatars and trailers (trailers support range via express.static).
-media.use('/images', express.static(path.join(env.storageDir, 'images'), { maxAge: '30d', immutable: false, fallthrough: false }))
-media.use('/trailers', express.static(path.join(env.storageDir, 'trailers'), { maxAge: '7d', fallthrough: false }))
+// Public, non-sensitive assets: artwork, avatars and trailers.
+for (const dir of ['images', 'trailers'] as const) {
+  if (storage.publicUrl) {
+    // Object storage: redirect to the public CDN URL.
+    media.get(new RegExp(`^/${dir}/(.+)$`), (req, res) => {
+      const key = `${dir}/${decodeURIComponent((req.params as Record<string, string>)[0])}`
+      if (key.includes('..')) throw new HttpError(400, 'Invalid path')
+      res.setHeader('Cache-Control', 'public, max-age=86400')
+      res.redirect(302, storage.publicUrl!(key)!)
+    })
+  } else {
+    media.use(`/${dir}`, express.static(path.join(env.storageDir, dir), { maxAge: dir === 'images' ? '30d' : '7d', fallthrough: false }))
+  }
+}

@@ -4,7 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
+  // Direct/session connection used by `prisma migrate` (Supabase: session pooler, port 5432).
+  directUrl = env("DIRECT_URL")
 }
 
 enum Role {

@@ -1,0 +1,32 @@
+# Render Blueprint for the CineVault API (Express + Prisma).
+# Secrets are marked sync:false — set them in the Render dashboard, never in this file.
+services:
+  - type: web
+    name: movie-sphere-api
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build -w server
+    startCommand: npm run db:migrate -w server && npm start -w server
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "2"
+      - key: STORAGE_DRIVER
+        value: supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY # Supabase service-role / secret key
+        sync: false
+      - key: DATABASE_URL # Supabase transaction pooler (6543) + ?pgbouncer=true&connection_limit=3
+        sync: false
+      - key: DIRECT_URL # Supabase session pooler (5432), used for migrations
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PUBLIC_ORIGIN # your Vercel URL
+        sync: false

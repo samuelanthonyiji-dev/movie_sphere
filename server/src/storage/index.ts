@@ -10,13 +10,17 @@ import { env } from '../lib/env.js'
  * (e.g. returning a short-lived signed URL from `signedUrl` and redirecting to it).
  */
 export interface StorageDriver {
-  put(key: string, source: Readable | Buffer): Promise<void>
-  move(fromAbsolutePath: string, key: string): Promise<void>
+  put(key: string, source: Readable | Buffer, contentType?: string): Promise<void>
+  move(fromAbsolutePath: string, key: string, contentType?: string): Promise<void>
   stat(key: string): Promise<{ size: number } | null>
   read(key: string, range?: { start: number; end: number }): Readable
   remove(key: string): Promise<void>
   /** Local absolute path when available (dev only). */
   localPath?(key: string): string
+  /** Public CDN URL for non-sensitive objects (artwork, trailers), if the driver has one. */
+  publicUrl?(key: string): string | null
+  /** Short-lived signed URL for private objects, if the driver supports it. */
+  signedUrl?(key: string, opts?: { expiresIn?: number; download?: string }): Promise<string>
 }
 
 function safeJoin(root: string, key: string) {
@@ -62,4 +66,6 @@ export class LocalStorage implements StorageDriver {
   }
 }
 
-export const storage: StorageDriver = new LocalStorage()
+import { SupabaseStorage } from './supabase.js'
+
+export const storage: StorageDriver = process.env.STORAGE_DRIVER === 'supabase' ? new SupabaseStorage() : new LocalStorage()

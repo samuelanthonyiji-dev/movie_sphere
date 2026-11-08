@@ -15,7 +15,8 @@ import { misc } from './routes/misc.js'
 import { renderShell, robots, sitemap } from './seo.js'
 
 const app = express()
-app.set('trust proxy', 1)
+// Number of proxies in front of the app (Render = 1; Vercel rewrite + Render = 2).
+app.set('trust proxy', Number(process.env.TRUST_PROXY ?? 1))
 app.disable('x-powered-by')
 app.use(
   helmet({

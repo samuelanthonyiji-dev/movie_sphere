@@ -151,7 +151,7 @@ async function processImage(buf: Buffer, sizes: number[], base: string) {
     throw new HttpError(400, 'That file is not a supported image (JPEG, PNG, WebP or AVIF).')
   }
   if (!meta.format || !['jpeg', 'png', 'webp', 'avif'].includes(meta.format)) throw new HttpError(400, 'Only JPEG, PNG, WebP or AVIF images are accepted.')
-  for (const w of sizes) await storage.put(`${base}-${w}.webp`, await sharp(buf).rotate().resize({ width: w, withoutEnlargement: false }).webp({ quality: 80 }).toBuffer())
+  for (const w of sizes) await storage.put(`${base}-${w}.webp`, await sharp(buf).rotate().resize({ width: w, withoutEnlargement: false }).webp({ quality: 80 }).toBuffer(), 'image/webp')
   return `/media/${base}-${sizes.at(-1)}.webp`
 }
 
@@ -200,7 +200,7 @@ admin.post('/movies/:id/files', videoUpload.single('file'), async (req, res) => 
     if (!sniff) throw new HttpError(400, 'Only MP4 or WebM video files are accepted.')
     const movie = await prisma.movie.findUniqueOrThrow({ where: { id: String(req.params.id) } })
     const key = `media/${movie.slug}/${movie.slug}-${body.quality}-${Date.now()}.${sniff.format}`
-    await storage.move(req.file.path, key)
+    await storage.move(req.file.path, key, sniff.mime)
     const f = await prisma.movieFile.create({
       data: {
         movieId: movie.id,
@@ -253,7 +253,7 @@ admin.post('/movies/:id/trailer', videoUpload.single('file'), async (req, res) =
     throw new HttpError(400, 'Only MP4 or WebM video files are accepted.')
   }
   const key = `trailers/${String(req.params.id)}-${Date.now()}.${sniff.format}`
-  await storage.move(req.file.path, key)
+  await storage.move(req.file.path, key, sniff.mime)
   const m = await prisma.movie.update({ where: { id: String(req.params.id) }, data: { trailerUrl: `/media/${key}` } })
   res.json({ trailerUrl: m.trailerUrl })
 })
@@ -269,7 +269,7 @@ admin.post('/movies/:id/subtitles', textUpload.single('file'), async (req, res) 
   if (ext !== 'vtt' && ext !== 'srt') throw new HttpError(400, 'Only .vtt or .srt subtitle files are accepted.')
   const movie = await prisma.movie.findUniqueOrThrow({ where: { id: String(req.params.id) } })
   const key = `subtitles/${movie.slug}/${body.language}-${Date.now()}.${ext}`
-  await storage.put(key, req.file.buffer)
+  await storage.put(key, req.file.buffer, ext === 'vtt' ? 'text/vtt' : 'application/x-subrip')
   const s = await prisma.subtitle.create({ data: { movieId: movie.id, language: body.language, label: body.label, format: ext, storageKey: key } })
   res.status(201).json(s)
 })

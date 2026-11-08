@@ -1,0 +1,19 @@
+-- Lock tables down for Supabase's auto-generated REST/GraphQL APIs (anon/authenticated roles).
+-- The app connects as the table owner, which bypasses RLS, so behaviour is unchanged.
+-- No policies are defined on purpose: the browser never talks to these tables directly.
+ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Movie" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Genre" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "MovieGenre" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "MovieFile" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Subtitle" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Episode" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Watchlist" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "WatchHistory" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Rating" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "DownloadEvent" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "Collection" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "CollectionMovie" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "HomeSection" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "ContentReport" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "_prisma_migrations" ENABLE ROW LEVEL SECURITY;
