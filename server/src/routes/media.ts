@@ -122,7 +122,8 @@ media.get('/hls/:fileId/:asset', async (req, res) => {
 })
 
 function srtToVtt(srt: string) {
-  return 'WEBVTT\n\n' + srt.replace(/\r/g, '').replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2').trim() + '\n'
+  // SRT uses a comma before milliseconds and some generators emit 1–2 digits; VTT needs ".mmm".
+  return 'WEBVTT\n\n' + srt.replace(/\r/g, '').replace(/(\d{1,2}:\d{2}:\d{2})[,.](\d{1,3})\b/g, (_m, t: string, ms: string) => `${t.padStart(8, '0')}.${ms.padEnd(3, '0')}`).trim() + '\n'
 }
 
 media.get('/subtitles/:file', async (req, res) => {
