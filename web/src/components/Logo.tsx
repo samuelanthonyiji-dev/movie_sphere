@@ -4,13 +4,8 @@ import { cx } from '@/lib/format'
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 512 512" className={className} aria-hidden="true">
-      <circle cx="256" cy="256" r="168" fill="none" stroke="#E50914" strokeWidth="40" />
-      <g fill="#E50914">
-        <rect x="242" y="44" width="28" height="52" rx="9" />
-        <rect x="242" y="416" width="28" height="52" rx="9" />
-        <rect x="44" y="242" width="52" height="28" rx="9" />
-        <rect x="416" y="242" width="52" height="28" rx="9" />
-      </g>
+      <circle cx="256" cy="256" r="176" fill="none" stroke="#E50914" strokeWidth="36" />
+      <ellipse cx="256" cy="256" rx="236" ry="78" fill="none" stroke="#E50914" strokeWidth="18" opacity=".55" transform="rotate(-22 256 256)" />
       <path d="M214 176 L352 256 L214 336 Z" fill="#fff" stroke="#fff" strokeWidth="18" strokeLinejoin="round" />
     </svg>
   )
@@ -31,7 +26,7 @@ export function Logo({ className, compact }: { className?: string; compact?: boo
   )
 }
 
-/** Brand-specific loading animation: the vault ring spins while the play mark pulses. */
+/** Brand-specific loading animation: the sphere ring spins while the play mark pulses. */
 export function BrandLoader({ label = 'Loading', className }: { label?: string; className?: string }) {
   return (
     <div role="status" aria-live="polite" className={cx('flex flex-col items-center justify-center gap-4 py-24', className)}>

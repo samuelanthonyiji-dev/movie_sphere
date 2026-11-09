@@ -119,7 +119,7 @@ export default function SearchPage() {
             <div>
               <h2 className="label">Popular searches</h2>
               <div className="flex flex-wrap gap-2">
-                {['Chaplin', 'Silent', 'Fritz Lang', 'Thriller', 'Korean', 'Animation', '2026'].map((t) => <button key={t} className="chip" onClick={() => setQ(t)}>{t}</button>)}
+                {['Chaplin', 'Noir', 'Hitchcock', 'Western', 'Horror', 'Comedy', '1940'].map((t) => <button key={t} className="chip" onClick={() => setQ(t)}>{t}</button>)}
               </div>
             </div>
           </div>

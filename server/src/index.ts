@@ -85,7 +85,7 @@ app.use(errorHandler)
 
 app.listen(env.port, () => {
   scheduleImports()
-  console.log(`CineVault API listening on http://localhost:${env.port}`)
+  console.log(`MovieSphere API listening on http://localhost:${env.port}`)
   console.log(`  storage: ${env.storageDir}`)
   console.log(`  web:     ${path.resolve(env.webDist)}`)
 })

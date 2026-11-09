@@ -247,7 +247,7 @@ function SettingsPanel() {
         <h2 id="notif-title" className="flex items-center gap-2 text-lg font-bold"><Bell className="size-5" /> Notifications</h2>
         <p className="mt-1 text-xs text-subtle">Off by default. Turning one on asks your browser for permission. Stored on this device.</p>
         {!notificationsSupported() ? (
-          <p className="mt-4 text-sm text-muted">This browser doesn’t support notifications. On iPhone/iPad, install CineVault to your Home Screen first.</p>
+          <p className="mt-4 text-sm text-muted">This browser doesn’t support notifications. On iPhone/iPad, install MovieSphere to your Home Screen first.</p>
         ) : (
           <ul className="mt-4 divide-y divide-line">
             {([['newMovies', 'Newly added movies'], ['newEpisodes', 'New series & episodes'], ['download', 'Offline download complete'], ['updates', 'Platform updates']] as Array<[NotifyKind, string]>).map(([k, label]) => (
@@ -263,7 +263,7 @@ function SettingsPanel() {
       <section className="card p-5" aria-labelledby="app-title">
         <h2 id="app-title" className="flex items-center gap-2 text-lg font-bold"><MonitorDown className="size-5" /> App</h2>
         <p className="mt-2 text-sm text-muted">
-          {pwa.installed ? 'CineVault is installed on this device.' : pwa.canPrompt ? 'Install CineVault for a full-screen app experience and faster launch.' : pwa.isIOS ? 'On iPhone and iPad, add CineVault to your Home Screen from Safari.' : 'Installation becomes available in supported browsers (Chrome, Edge, Samsung Internet, Safari on iOS/macOS).'}
+          {pwa.installed ? 'MovieSphere is installed on this device.' : pwa.canPrompt ? 'Install MovieSphere for a full-screen app experience and faster launch.' : pwa.isIOS ? 'On iPhone and iPad, add MovieSphere to your Home Screen from Safari.' : 'Installation becomes available in supported browsers (Chrome, Edge, Samsung Internet, Safari on iOS/macOS).'}
         </p>
         {!pwa.installed && (pwa.canPrompt || pwa.isIOS) && <button className="btn-primary mt-4" onClick={() => pwa.install()}><MonitorDown className="size-4" /> Install app</button>}
         <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-4">

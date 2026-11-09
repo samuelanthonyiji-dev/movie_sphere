@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "CineVault — Authorized Movies",
-  "short_name": "CineVault",
-  "description": "Discover, stream and download public-domain classics, licensed films and creator-authorized originals.",
+  "name": "MovieSphere — Authorized Movies",
+  "short_name": "MovieSphere",
+  "description": "Stream and download free, legal movies — public-domain classics and openly licensed films.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

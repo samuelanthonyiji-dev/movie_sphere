@@ -36,7 +36,12 @@ async function genreIds(names: string[]) {
 }
 
 async function importOne(doc: ia.IASearchDoc): Promise<'imported' | 'updated' | 'skipped'> {
-  const existing = await prisma.movie.findUnique({ where: { externalId: doc.identifier }, select: { id: true, tmdbId: true } })
+  const existing = await prisma.movie.findUnique({ where: { externalId: doc.identifier }, select: { id: true, tmdbId: true, source: true } })
+  // Re-apply the content filter to titles imported under an older filter.
+  if (existing && existing.source === 'internet_archive' && ia.excludePattern().test(doc.title ?? '')) {
+    await prisma.movie.delete({ where: { id: existing.id } })
+    return 'skipped'
+  }
   const popularity = popularityFrom(doc.downloads)
   if (existing && (existing.tmdbId || !tmdbEnabled())) {
     await prisma.movie.update({ where: { id: existing.id }, data: { popularity } })

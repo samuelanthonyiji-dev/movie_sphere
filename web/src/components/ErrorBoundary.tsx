@@ -6,7 +6,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode; fallback?: R
     return { error }
   }
   componentDidCatch(error: Error) {
-    console.error('[CineVault] UI error', error)
+    console.error('[MovieSphere] UI error', error)
   }
   render() {
     if (!this.state.error) return this.props.children

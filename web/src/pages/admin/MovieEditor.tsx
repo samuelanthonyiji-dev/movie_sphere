@@ -28,7 +28,7 @@ function upload<T>(url: string, fd: FormData, onProgress: (p: number) => void): 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open('POST', url)
-    xhr.setRequestHeader('X-CineVault', '1')
+    xhr.setRequestHeader('X-MovieSphere', '1')
     xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(e.loaded / e.total)
     xhr.onload = () => {
       const data = (() => { try { return JSON.parse(xhr.responseText) } catch { return null } })()

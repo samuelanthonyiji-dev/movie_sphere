@@ -1,4 +1,4 @@
-# CineVault — authorized movie discovery & download PWA
+# MovieSphere — authorized movie discovery & download PWA
 
 A full-stack, installable movie platform for **legally distributable** content: public-domain films,
 licensed titles, creator-authorized uploads and platform originals.
@@ -13,8 +13,8 @@ licensed titles, creator-authorized uploads and platform originals.
 cp server/.env.example server/.env        # set JWT_SECRET, DATABASE_URL, ADMIN_PASSWORD
 npm install
 npm run db:migrate -w server             # applies prisma/migrations (incl. pg_trgm search index)
-npm run media:generate                   # optional: needs ffmpeg — creates sample clips for the Originals
-npm run db:seed -w server                # catalog, placeholder artwork, collections, admin user
+npm run db:seed -w server                # genres, homepage sections, admin user (no movies)
+npm run import -- 100                    # import 100 licensed films from the Internet Archive
 
 # Development (API on :4000, Vite on :5173 with proxy)
 npm run dev
@@ -26,19 +26,9 @@ npm run build && NODE_ENV=production npm start   # → http://localhost:4000
 Default admin: `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (seed only). Change it immediately.
 The service worker is only registered in production builds; PWA install requires HTTPS (or localhost).
 
-## What is real and what is sample data
+## Where the movies come from
 
-| Area | Status |
-|---|---|
-| Catalog (48 titles) | **Sample.** 16 fictional "CineVault Originals" + 32 real films believed to be US public domain (metadata only). |
-| Download files | **Real pipeline, sample files.** Originals have short clips *generated locally by ffmpeg* (480p/720p/1080p MP4, an HLS stream, VTT subtitles), served with Range support. Public-domain classics have **no files**, so they correctly show *"Download currently unavailable."* No URLs are invented and nothing is scraped. |
-| Artwork | **Generated placeholder SVGs** (marked as such). Replace via Admin → Titles → Artwork. |
-| Ratings | "CineVault score" is editorial sample data and labelled as such. Member ratings are real (stored per user). |
-| Download counts / popularity | Seeded sample values; real downloads increment them. |
-| Auth | Real: bcrypt (cost 12), JWT in httpOnly SameSite cookie, CSRF header check, rate limiting. |
-| Password reset email | **No mail provider configured.** The reset link is logged on the server and, in development only, shown on screen. Plug a provider into `server/src/routes/auth.ts`. |
-| Object storage | `LocalStorage` driver behind a `StorageDriver` interface (`server/src/storage`). An S3/R2/GCS driver is not included — implement the interface for production. |
-| Notifications | Local, opt-in (permission requested only when a toggle is turned on). No Web Push server is included. |
+There is no dummy or sample catalog. Every title is imported from the Internet Archive with its licence and source link (see *Movie catalog from external APIs* below); admins can also add titles they hold distribution rights for. Ratings come from TMDB when a key is configured, otherwise they show "—". Member ratings are stored per user.
 
 ## Features
 
@@ -78,7 +68,6 @@ Imports are idempotent (keyed by the Internet Archive identifier) and merge into
 
 Render environment variables: `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET`, `SUPABASE_URL`, **`SUPABASE_SECRET_KEY`** (Supabase → Project Settings → API Keys → secret/service_role key; required for private media and admin uploads), `STORAGE_DRIVER=supabase`, `PUBLIC_ORIGIN`, `TRUST_PROXY` (1 direct, 2 behind Vercel), `NODE_ENV=production`, `NODE_VERSION=22`.
 
-Uploading local sample media to Supabase: `SUPABASE_URL=… SUPABASE_SECRET_KEY=… npx tsx scripts/upload-storage.ts` (from `server/`).
 
 Free-tier caveats: Render free instances sleep after ~15 min idle (first request takes up to a minute); Supabase free projects pause after a week of inactivity. Large admin video uploads through Vercel's rewrite are subject to Vercel's request-size limits — upload large files against the Render URL instead.
 

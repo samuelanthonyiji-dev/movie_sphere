@@ -9,7 +9,7 @@
  * downloadable file carries an explicit public-domain or open licence declared at the source.
  */
 
-const UA = process.env.IMPORT_USER_AGENT ?? 'CineVaultImporter/1.0 (+https://github.com/samuelanthonyiji-dev/movie_sphere)'
+const UA = process.env.IMPORT_USER_AGENT ?? 'MovieSphereImporter/1.0 (+https://github.com/samuelanthonyiji-dev/movie_sphere)'
 const BASE = 'https://archive.org'
 
 /** Licences that permit redistribution (including commercial use). NC/ND licences are excluded. */
@@ -188,6 +188,10 @@ export function cleanText(html: string | undefined, max = 2000) {
     .slice(0, max)
 }
 
+/** Content filter for imports (override with IMPORT_EXCLUDE_PATTERN). */
+export const excludePattern = () =>
+  new RegExp(process.env.IMPORT_EXCLUDE_PATTERN ?? '\\b(xxx|porn\\w*|erotic\\w*|nude|nudes|nudity|nudist\\w*|nudie\\w*|sexploitation|stripper\\w*|burlesque)\\b', 'i')
+
 export function metadataSummary(item: IAItem) {
   const m = item.metadata
   const yearRaw = first(m.year) ?? first(m.date)?.slice(0, 4)
@@ -204,7 +208,7 @@ export function metadataSummary(item: IAItem) {
     country: cleanText(first(m.country), 80) || null,
     license: first(m.licenseurl) ?? null,
     color: first(m.color),
-    adult: new RegExp(process.env.IMPORT_EXCLUDE_PATTERN ?? '\\b(xxx|porn\\w*|erotic\\w*|nude|nudes|nudity|nudist\\w*|nudie\\w*|sexploitation|stripper\\w*|burlesque)\\b', 'i').test(
+    adult: excludePattern().test(
       [first(m.title), first(m.description)?.slice(0, 400), ...all(m.subject)].join(' '),
     ),
   }

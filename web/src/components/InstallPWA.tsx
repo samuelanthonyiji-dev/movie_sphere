@@ -36,18 +36,18 @@ export function InstallPWA() {
       {pwa.updateReady && (
         <div role="status" className="fixed inset-x-4 top-[calc(4.5rem+env(safe-area-inset-top))] z-[60] mx-auto flex max-w-md animate-rise items-center gap-3 rounded-xl border border-line bg-elevated p-3 text-sm shadow-2xl">
           <RefreshCw className="size-5 shrink-0 text-accent" aria-hidden />
-          <span className="flex-1">A new version of CineVault is available.</span>
+          <span className="flex-1">A new version of MovieSphere is available.</span>
           <button className="btn-primary min-h-9 px-4 text-xs" onClick={pwa.applyUpdate}>Update</button>
         </div>
       )}
 
       {available && visible && !dismissed && (
-        <div role="dialog" aria-label="Install CineVault" className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-[55] mx-auto flex max-w-lg animate-rise items-center gap-3 rounded-2xl border border-line bg-elevated/95 p-3 shadow-2xl backdrop-blur md:right-6 md:bottom-6 md:left-auto md:mx-0">
+        <div role="dialog" aria-label="Install MovieSphere" className="fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-[55] mx-auto flex max-w-lg animate-rise items-center gap-3 rounded-2xl border border-line bg-elevated/95 p-3 shadow-2xl backdrop-blur md:right-6 md:bottom-6 md:left-auto md:mx-0">
           <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-black">
             <LogoMark className="size-9" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">Install the CineVault app</p>
+            <p className="text-sm font-semibold">Install the MovieSphere app</p>
             <p className="text-xs text-muted">Faster launch, offline list and downloads, full-screen viewing.</p>
           </div>
           <button className="btn-primary min-h-9 px-4 text-xs" onClick={() => pwa.install()}>
@@ -63,13 +63,13 @@ export function InstallPWA() {
         <Modal onClose={() => pwa.setShowIOSGuide(false)} labelledBy="ios-title" size="sm">
           <div className="flex items-center gap-3">
             <div className="grid size-12 place-items-center rounded-xl bg-black"><LogoMark className="size-9" /></div>
-            <h2 id="ios-title" className="text-lg font-bold">Add CineVault to your Home Screen</h2>
+            <h2 id="ios-title" className="text-lg font-bold">Add MovieSphere to your Home Screen</h2>
           </div>
           <ol className="mt-5 space-y-4 text-sm text-muted">
             <li className="flex gap-3"><Step n={1} /><span>Open this page in <strong className="text-white">Safari</strong> (other iOS browsers may not offer installation).</span></li>
             <li className="flex gap-3"><Step n={2} /><span>Tap the <strong className="text-white">Share</strong> button <Share className="inline size-4 align-text-bottom text-white" aria-label="Share icon" /> in the toolbar.</span></li>
             <li className="flex gap-3"><Step n={3} /><span>Scroll and choose <strong className="text-white">Add to Home Screen</strong> <PlusSquare className="inline size-4 align-text-bottom text-white" aria-hidden />.</span></li>
-            <li className="flex gap-3"><Step n={4} /><span>Tap <strong className="text-white">Add</strong>. CineVault will open full-screen like a native app.</span></li>
+            <li className="flex gap-3"><Step n={4} /><span>Tap <strong className="text-white">Add</strong>. MovieSphere will open full-screen like a native app.</span></li>
           </ol>
           <button className="btn-primary mt-6 w-full" onClick={() => pwa.setShowIOSGuide(false)}>Got it</button>
         </Modal>

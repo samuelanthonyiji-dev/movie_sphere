@@ -41,8 +41,9 @@ export function toCard(m: CardMovie) {
     topQuality: downloadQualities.at(-1) ?? null,
     downloadable: downloadQualities.length > 0,
     streamable: m.files.some((f) => f.streamable),
-    isNew: Date.now() - m.createdAt.getTime() < 14 * DAY,
-    isTrending: m.popularity >= 7500,
+    // NEW = a recent release (not merely recently imported); TRENDING = among the most-watched titles.
+    isNew: m.releaseYear >= new Date().getFullYear() - 1 && Date.now() - m.createdAt.getTime() < 60 * DAY,
+    isTrending: m.popularity >= 9000,
     popularity: m.popularity,
     downloadCount: m.downloadCount,
     rightsBasis: m.rightsBasis,

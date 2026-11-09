@@ -142,7 +142,18 @@ catalog.get('/home', async (req, res) => {
   const q = (where: Prisma.MovieWhereInput, orderBy: Prisma.MovieOrderByWithRelationInput[]) =>
     prisma.movie.findMany({ where: { ...base, ...where }, orderBy, include: cardInclude, take })
 
-  const hero = await prisma.movie.findMany({ where: { ...base, featured: true }, orderBy: { popularity: 'desc' }, include: cardInclude, take: 6 })
+  // Hero: admin-featured titles; otherwise the most popular playable films (preferring proper backdrops).
+  let hero = await prisma.movie.findMany({ where: { ...base, featured: true }, orderBy: { popularity: 'desc' }, include: cardInclude, take: 6 })
+  if (hero.length < 3) {
+    // Playable films with at least one genre (keeps uncategorised oddities out of the banner).
+    const playable = { ...base, featured: false, genres: { some: {} }, files: { some: { authorizationStatus: 'AUTHORIZED' as const, streamable: true } } }
+    const withArt = await prisma.movie.findMany({ where: { ...playable, backdropUrl: { contains: 'image.tmdb.org' } }, orderBy: { popularity: 'desc' }, include: cardInclude, take: 6 - hero.length })
+    hero = [...hero, ...withArt]
+    if (hero.length < 3) {
+      const rest = await prisma.movie.findMany({ where: { ...playable, id: { notIn: hero.map((h) => h.id) } }, orderBy: { popularity: 'desc' }, include: cardInclude, take: 6 - hero.length })
+      hero = [...hero, ...rest]
+    }
+  }
 
   const out = await Promise.all(
     sections.map(async (s) => {

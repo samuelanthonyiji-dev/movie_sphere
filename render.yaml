@@ -1,4 +1,4 @@
-# Render Blueprint for the CineVault API (Express + Prisma).
+# Render Blueprint for the MovieSphere API (Express + Prisma).
 # Secrets are marked sync:false — set them in the Render dashboard, never in this file.
 services:
   - type: web

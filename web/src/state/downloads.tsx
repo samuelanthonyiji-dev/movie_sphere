@@ -172,7 +172,7 @@ export function DownloadsProvider({ children }: { children: ReactNode }) {
       await cache.put(
         offlineKey(f.id),
         new Response(res.body.pipeThrough(counter), {
-          headers: { 'Content-Type': f.mimeType, 'Content-Length': String(total), 'X-CineVault-Stored': now() },
+          headers: { 'Content-Type': f.mimeType, 'Content-Length': String(total), 'X-MovieSphere-Stored': now() },
         }),
       )
       // Confirm storage actually succeeded before claiming it.

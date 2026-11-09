@@ -16,7 +16,7 @@ import { storage } from '../storage/index.js'
 export const admin = Router()
 admin.use(requireAdmin)
 
-const tmpDir = path.join(os.tmpdir(), 'cinevault-uploads')
+const tmpDir = path.join(os.tmpdir(), 'moviesphere-uploads')
 mkdirSync(tmpDir, { recursive: true })
 
 const imageUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: env.maxImageBytes, files: 1 } })

@@ -65,7 +65,7 @@ model Movie {
   description      String
   releaseYear      Int
   runtime          Int // minutes (per episode for series)
-  rating           Float // editorial CineVault score, 0-10
+  rating           Float // editorial MovieSphere score, 0-10
   ageRating        String      @default("NR")
   country          String
   language         String

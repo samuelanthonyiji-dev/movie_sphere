@@ -10,7 +10,7 @@ import { useDocumentTitle, useInView } from '@/lib/hooks'
 
 type Mode = 'movies' | 'series' | 'latest' | 'trending'
 const META: Record<Mode, { title: string; sort: string; type: string; blurb: string }> = {
-  movies: { title: 'Movies', sort: 'popular', type: 'movie', blurb: 'Feature films from public-domain classics to CineVault Originals.' },
+  movies: { title: 'Movies', sort: 'popular', type: 'movie', blurb: 'Feature films from public-domain classics to MovieSphere Originals.' },
   series: { title: 'TV Series', sort: 'popular', type: 'series', blurb: 'Episodic stories to settle into.' },
   latest: { title: 'Latest releases', sort: 'latest', type: '', blurb: 'The newest titles by release year.' },
   trending: { title: 'Trending', sort: 'popular', type: '', blurb: 'What people are watching and saving right now.' },
@@ -88,7 +88,7 @@ export default function Browse({ mode }: { mode: Mode }) {
 
   const genreName = filters.genre.length === 1 ? genres?.find((g) => g.slug === filters.genre[0])?.name : undefined
   const title = facetGenre && genreName ? `${genreName} ${mode === 'series' ? 'Series' : 'Movies'}` : facetYear ? `${meta.title} from ${facetYear}` : meta.title
-  useDocumentTitle(title, `${meta.blurb} Browse, filter and download authorized titles on CineVault.`)
+  useDocumentTitle(title, `${meta.blurb} Browse, filter and download authorized titles on MovieSphere.`)
 
   return (
     <div className="container-page pt-24 lg:pt-28">

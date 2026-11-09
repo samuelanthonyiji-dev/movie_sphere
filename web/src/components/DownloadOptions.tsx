@@ -40,7 +40,7 @@ export function DownloadOptions({ movie }: { movie: MovieDetail }) {
   const toOffline = async (f: MovieFile) => {
     const ok = await confirm({
       title: `Save ${f.quality} for offline viewing?`,
-      message: <>Stores {formatBytes(f.fileSize)} inside the CineVault app on this device so you can watch without a connection. You can remove it anytime from Downloads.</>,
+      message: <>Stores {formatBytes(f.fileSize)} inside the MovieSphere app on this device so you can watch without a connection. You can remove it anytime from Downloads.</>,
       confirmLabel: 'Save offline',
     })
     if (!ok) return

@@ -59,8 +59,8 @@ export default function Downloads() {
         <dl className="mt-3 grid gap-3 sm:grid-cols-2">
           <div><dt className="font-semibold text-white">Downloading</dt><dd>Being transferred into the app right now, with live progress.</dd></div>
           <div><dt className="font-semibold text-white">Sent to browser</dt><dd>Handed to your browser’s download manager. The file lands in your device’s Downloads folder; the app can’t see whether it finished.</dd></div>
-          <div><dt className="font-semibold text-white">Stored in app</dt><dd>Saved inside CineVault’s storage on this device and verified after saving.</dd></div>
-          <div><dt className="font-semibold text-white">Available offline</dt><dd>A stored film that can be played in the CineVault player with no connection.</dd></div>
+          <div><dt className="font-semibold text-white">Stored in app</dt><dd>Saved inside MovieSphere’s storage on this device and verified after saving.</dd></div>
+          <div><dt className="font-semibold text-white">Available offline</dt><dd>A stored film that can be played in the MovieSphere player with no connection.</dd></div>
         </dl>
       </details>
 

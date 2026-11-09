@@ -78,7 +78,7 @@ export function Navbar() {
           <button className="btn-icon -ml-2 lg:hidden" onClick={() => setDrawer(true)} aria-label="Open menu" aria-expanded={drawer}>
             <Menu className="size-6" />
           </button>
-          <Link to="/" aria-label="CineVault home" className="shrink-0">
+          <Link to="/" aria-label="MovieSphere home" className="shrink-0">
             <Logo />
           </Link>
           <nav aria-label="Primary" className="ml-6 hidden flex-1 lg:block">
@@ -162,7 +162,7 @@ export function Navbar() {
             {!pwa.installed && (pwa.canPrompt || pwa.isIOS) && (
               <div className="border-t border-line p-4">
                 <button className="btn-primary w-full" onClick={() => pwa.install()}>
-                  <MonitorDown className="size-4" /> Install CineVault
+                  <MonitorDown className="size-4" /> Install MovieSphere
                 </button>
               </div>
             )}

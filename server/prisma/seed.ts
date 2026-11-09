@@ -1,122 +1,61 @@
 /**
- * Seeds the development database with the sample catalog, generated placeholder artwork and
- * (if `npm run media:generate` has been run) the generated sample media files.
- * Safe to re-run: it upserts by slug.
+ * Seeds only structural data: genres, homepage sections and the first admin account.
+ * Movies are NOT seeded — they come from external sources (see src/importers):
+ *   npm run import:catalog -w server -- 100      (or Admin → Import, or IMPORT_ON_START=true)
+ * Safe to re-run.
  */
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import path from 'node:path'
 import { loadEnv } from '../src/lib/env.js'
-import { buildSearchText, slugify } from '../src/lib/serialize.js'
-import { backdropSvg, posterSvg } from './art.js'
-import { CATALOG, COLLECTIONS, GENRES, HOME_SECTIONS } from './catalog.js'
+import { slugify } from '../src/lib/serialize.js'
 
 loadEnv()
 const prisma = new PrismaClient()
-const STORAGE = path.resolve(process.env.STORAGE_DIR ?? './storage')
 
-type Manifest = Record<string, {
-  files: Array<{ quality: string; format: string; mimeType: string; storageKey: string; fileSize: number }>
-  trailerKey: string
-  subtitles: Array<{ language: string; label: string; storageKey: string }>
-}>
+export const GENRES = [
+  'Action', 'Adventure', 'Animation', 'Biography', 'Comedy', 'Crime', 'Documentary', 'Drama',
+  'Family', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western',
+]
+
+export const HOME_SECTIONS: Array<{ key: string; title: string }> = [
+  { key: 'continue', title: 'Continue Watching' },
+  { key: 'trending', title: 'Trending Now' },
+  { key: 'popular', title: 'Popular Movies' },
+  { key: 'recommended', title: 'Recommended For You' },
+  { key: 'recent', title: 'Recently Added' },
+  { key: 'latest', title: 'Latest Movies' },
+  { key: 'top-rated', title: 'Top Rated Movies' },
+  { key: 'most-downloaded', title: 'Most Downloaded' },
+  { key: 'genre:comedy', title: 'Comedy Movies' },
+  { key: 'genre:horror', title: 'Horror Movies' },
+  { key: 'genre:sci-fi', title: 'Sci-Fi Movies' },
+  { key: 'genre:crime', title: 'Crime & Noir' },
+  { key: 'genre:action', title: 'Action Movies' },
+  { key: 'genre:romance', title: 'Romance Movies' },
+  { key: 'genre:adventure', title: 'Adventure Movies' },
+  { key: 'genre:western', title: 'Westerns' },
+  { key: 'featured', title: 'Featured Movies' },
+  { key: 'series', title: 'TV Series' },
+]
 
 async function main() {
-  const manifestPath = path.join(STORAGE, 'media', 'manifest.json')
-  const manifest: Manifest = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : {}
-  if (!Object.keys(manifest).length) console.warn('⚠ No sample media manifest found — run `npm run media:generate` first for downloadable titles.')
-
   for (const name of GENRES) await prisma.genre.upsert({ where: { slug: slugify(name) }, create: { name, slug: slugify(name) }, update: { name } })
-  const genres = new Map((await prisma.genre.findMany()).map((g) => [g.name, g.id]))
-
-  mkdirSync(path.join(STORAGE, 'images', 'posters'), { recursive: true })
-  mkdirSync(path.join(STORAGE, 'images', 'backdrops'), { recursive: true })
-
-  for (const item of CATALOG) {
-    writeFileSync(path.join(STORAGE, 'images', 'posters', `${item.slug}.svg`), posterSvg(item))
-    writeFileSync(path.join(STORAGE, 'images', 'backdrops', `${item.slug}.svg`), backdropSvg(item))
-    const media = manifest[item.slug]
-    const data = {
-      type: item.type ?? 'MOVIE',
-      title: item.title,
-      originalTitle: item.originalTitle ?? null,
-      tagline: item.tagline ?? null,
-      description: item.description,
-      releaseYear: item.year,
-      runtime: item.runtime,
-      rating: item.rating,
-      ageRating: item.ageRating,
-      country: item.country,
-      language: item.language,
-      director: item.director,
-      cast: item.cast,
-      production: item.production ?? null,
-      posterUrl: `/media/images/posters/${item.slug}.svg`,
-      backdropUrl: `/media/images/backdrops/${item.slug}.svg`,
-      trailerUrl: media && existsSync(path.join(STORAGE, media.trailerKey)) ? `/media/${media.trailerKey}` : null,
-      rightsBasis: item.rights,
-      rightsNote: item.rightsNote,
-      popularity: item.popularity,
-      downloadCount: item.downloads,
-      featured: item.featured ?? false,
-      searchText: buildSearchText({ ...item, releaseYear: item.year, genres: item.genres }),
-      createdAt: new Date(Date.now() - item.addedDaysAgo * 86400_000 - 3600_000),
-    } as const
-    const movie = await prisma.movie.upsert({ where: { slug: item.slug }, create: { slug: item.slug, ...data }, update: data })
-
-    await prisma.movieGenre.deleteMany({ where: { movieId: movie.id } })
-    await prisma.movieGenre.createMany({ data: item.genres.map((g) => ({ movieId: movie.id, genreId: genres.get(g)! })) })
-
-    await prisma.movieFile.deleteMany({ where: { movieId: movie.id } })
-    await prisma.subtitle.deleteMany({ where: { movieId: movie.id } })
-    if (media) {
-      for (const f of media.files) {
-        if (!existsSync(path.join(STORAGE, f.storageKey))) continue
-        await prisma.movieFile.create({
-          data: {
-            movieId: movie.id,
-            quality: f.quality,
-            format: f.format,
-            mimeType: f.mimeType,
-            fileSize: BigInt(f.fileSize),
-            storageKey: f.storageKey,
-            language: item.language,
-            authorizationStatus: 'AUTHORIZED',
-            authorizationNote: 'Generated by the platform owner for development (scripts/generate-sample-media.ts).',
-            downloadable: f.format !== 'hls',
-            streamable: true,
-          },
-        })
-      }
-      for (const s of media.subtitles) await prisma.subtitle.create({ data: { movieId: movie.id, language: s.language, label: s.label, format: 'vtt', storageKey: s.storageKey } })
-    }
-
-    await prisma.episode.deleteMany({ where: { movieId: movie.id } })
-    if (item.episodes?.length) await prisma.episode.createMany({ data: item.episodes.map((e) => ({ ...e, movieId: movie.id })) })
-  }
-
-  const ids = new Map((await prisma.movie.findMany({ select: { id: true, slug: true } })).map((m) => [m.slug, m.id]))
-  for (const [i, c] of COLLECTIONS.entries()) {
-    const col = await prisma.collection.upsert({ where: { slug: c.slug }, create: { slug: c.slug, title: c.title, description: c.description, sortOrder: i }, update: { title: c.title, description: c.description, sortOrder: i } })
-    await prisma.collectionMovie.deleteMany({ where: { collectionId: col.id } })
-    await prisma.collectionMovie.createMany({ data: c.movies.filter((s) => ids.has(s)).map((s, position) => ({ collectionId: col.id, movieId: ids.get(s)!, position })) })
-  }
-
   for (const [i, s] of HOME_SECTIONS.entries())
     await prisma.homeSection.upsert({ where: { key: s.key }, create: { key: s.key, title: s.title, sortOrder: i }, update: {} })
 
-  const email = (process.env.ADMIN_EMAIL ?? 'admin@cinevault.local').toLowerCase()
+  const email = (process.env.ADMIN_EMAIL ?? 'admin@moviesphere.local').toLowerCase()
   const password = process.env.ADMIN_PASSWORD
-  if (password) {
+  const existingAdmin = await prisma.user.findFirst({ where: { OR: [{ email }, { username: 'admin' }] } })
+  if (existingAdmin) console.log(`✔ Admin account already exists (${existingAdmin.email})`)
+  else if (password) {
     await prisma.user.upsert({
       where: { email },
-      create: { email, username: 'admin', displayName: 'CineVault Admin', role: 'ADMIN', passwordHash: await bcrypt.hash(password, 12) },
+      create: { email, username: 'admin', displayName: 'MovieSphere Admin', role: 'ADMIN', passwordHash: await bcrypt.hash(password, 12) },
       update: { role: 'ADMIN' },
     })
     console.log(`✔ Admin account: ${email} (password from ADMIN_PASSWORD — change it after first login)`)
   }
-  console.log(`✔ Seeded ${CATALOG.length} titles, ${GENRES.length} genres, ${COLLECTIONS.length} collections`)
+  console.log(`✔ Seeded ${GENRES.length} genres and ${HOME_SECTIONS.length} homepage sections. Import movies with: npm run import:catalog -w server`)
 }
 
 main()

@@ -87,8 +87,12 @@ function Hero({ movie }: { movie: MovieDetail }) {
           <h1 className="text-3xl leading-tight font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">{movie.title}</h1>
           {movie.originalTitle && movie.originalTitle !== movie.title && <p className="mt-1 text-sm text-subtle italic">{movie.originalTitle}</p>}
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
-            <Rating value={movie.rating} source={ratingSourceLabel(movie.ratingSource)} />
-            <span aria-hidden>·</span>
+            {movie.rating > 0 && (
+              <>
+                <Rating value={movie.rating} source={ratingSourceLabel(movie.ratingSource)} />
+                <span aria-hidden>·</span>
+              </>
+            )}
             <span>{movie.year}</span>
             <span aria-hidden>·</span>
             <span className="inline-flex items-center gap-1"><Clock className="size-3.5" aria-hidden />{formatRuntime(movie.runtime)}{movie.type === 'SERIES' && ' / episode'}</span>
@@ -198,7 +202,7 @@ function UserRating({ movie }: { movie: MovieDetail }) {
     <div className="card p-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold tracking-wide text-subtle uppercase">{movie.ratingSource === 'TMDB' ? 'TMDB rating' : 'CineVault score'}</p>
+          <p className="text-xs font-semibold tracking-wide text-subtle uppercase">{movie.ratingSource === 'TMDB' ? 'TMDB rating' : 'MovieSphere score'}</p>
           <p className="mt-1 text-2xl font-bold"><Rating value={movie.rating} className="text-2xl" source={ratingSourceLabel(movie.ratingSource)} /></p>
           <p className="text-[11px] text-subtle">{movie.ratingSource === 'TMDB' ? 'Community average from TMDB' : movie.rating > 0 ? 'Editorial score (sample data)' : 'No rating available'}</p>
         </div>

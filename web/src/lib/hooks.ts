@@ -41,7 +41,7 @@ export function useDocumentTitle(title: string | undefined, description?: string
   useEffect(() => {
     if (!title) return
     const prev = document.title
-    document.title = title.includes('CineVault') ? title : `${title} — CineVault`
+    document.title = title.includes('MovieSphere') ? title : `${title} — MovieSphere`
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
     const prevDesc = meta?.content
     if (description) {

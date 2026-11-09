@@ -55,14 +55,18 @@ export function HeroBanner({ items }: { items: MovieCard[] }) {
         <div className="container-page">
           <div key={m.id} className="max-w-2xl animate-rise" aria-live="polite">
             <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted sm:text-sm">
-              {m.rightsBasis === 'PLATFORM_ORIGINAL' && <Badge tone="red">CineVault Original</Badge>}
+              {m.rightsBasis === 'PLATFORM_ORIGINAL' && <Badge tone="red">MovieSphere Original</Badge>}
               {m.rightsBasis === 'PUBLIC_DOMAIN' && <Badge tone="outline">Public domain</Badge>}
               {m.rightsBasis === 'OPEN_LICENSE' && <Badge tone="outline">Creative Commons</Badge>}
               <span className="inline-flex items-center gap-1"><Clock className="size-3.5" aria-hidden />{formatRuntime(m.runtime)}{m.type === 'SERIES' && ' / ep'}</span>
             </div>
             <div className="mb-3 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-              <Rating value={m.rating} source={ratingSourceLabel(m.ratingSource)} />
-              <span className="text-subtle">·</span>
+              {m.rating > 0 && (
+                <>
+                  <Rating value={m.rating} source={ratingSourceLabel(m.ratingSource)} />
+                  <span className="text-subtle">·</span>
+                </>
+              )}
               <span className="text-muted">{m.year}</span>
               <span className="text-subtle">·</span>
               <span className="text-muted">{m.genres.slice(0, 3).map((g) => g.name).join(' | ')}</span>

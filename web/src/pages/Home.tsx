@@ -22,7 +22,7 @@ const ICONS: Record<string, React.ReactNode> = {
 }
 
 export default function Home() {
-  useDocumentTitle('CineVault — Discover & download authorized movies')
+  useDocumentTitle('MovieSphere — Discover & download authorized movies')
   const lib = useLibrary()
   // Guest personalisation: genre hints from on-device history and list (never sent with identity).
   const likes = useMemo(() => [...new Set([...lib.recent.map((r) => r.movie.slug), ...lib.list.map((r) => r.movie.slug), ...lib.progress.map((p) => p.movie.slug)])].slice(0, 20), [lib.recent, lib.list, lib.progress])
@@ -39,7 +39,8 @@ export default function Home() {
   if (error && !data) return <div className="pt-24"><ErrorState error={error} onRetry={() => refetch()} /></div>
 
   const sections = data?.sections ?? []
-  const spotlight = data?.hero.find((m) => m.trailerUrl)
+  // Spotlight plays a self-hosted trailer inline; external trailers (e.g. YouTube) open from the hero instead.
+  const spotlight = data?.hero.find((m) => m.trailerUrl?.startsWith('/'))
 
   return (
     <div className="pb-6">

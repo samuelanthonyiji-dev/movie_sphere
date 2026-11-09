@@ -8,7 +8,7 @@ export function AuthLayout({ title, subtitle, children, footer }: { title: strin
       <div className="pointer-events-none absolute -top-40 left-1/2 size-[600px] -translate-x-1/2 rounded-full bg-accent/15 blur-[120px]" aria-hidden />
       <div className="relative w-full max-w-md animate-rise">
         <div className="card p-6 sm:p-8">
-          <Link to="/" className="mb-6 inline-flex" aria-label="CineVault home"><LogoMark className="size-10" /></Link>
+          <Link to="/" className="mb-6 inline-flex" aria-label="MovieSphere home"><LogoMark className="size-10" /></Link>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           {subtitle && <p className="mt-1.5 text-sm text-muted">{subtitle}</p>}
           <div className="mt-6">{children}</div>

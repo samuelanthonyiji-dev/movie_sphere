@@ -3,12 +3,12 @@
  * (and `public/manifest.webmanifest`, `index.html` title, and server BRAND_NAME env).
  */
 export const BRAND = {
-  name: 'CineVault',
-  wordmark: ['CINE', 'VAULT'] as const,
-  tagline: 'Authorized films. Beautifully delivered.',
+  name: 'MovieSphere',
+  wordmark: ['MOVIE', 'SPHERE'] as const,
+  tagline: 'Free, legal films. Beautifully delivered.',
   description:
-    'Discover, stream and download public-domain classics, licensed films and creator-authorized originals.',
-  supportEmail: 'support@cinevault.example',
-  copyrightEmail: 'copyright@cinevault.example',
-  privacyEmail: 'privacy@cinevault.example',
+    'Stream and download free, legal movies — public-domain classics and openly licensed films.',
+  supportEmail: 'support@moviesphere.example',
+  copyrightEmail: 'copyright@moviesphere.example',
+  privacyEmail: 'privacy@moviesphere.example',
 } as const

@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 /**
- * CineVault service worker (built by vite-plugin-pwa, injectManifest strategy).
+ * MovieSphere service worker (built by vite-plugin-pwa, injectManifest strategy).
  *
  * Caching strategy by resource type:
  *  - App shell (JS/CSS/fonts/icons/index.html) ...... precached, versioned by build hash

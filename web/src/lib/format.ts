@@ -44,7 +44,7 @@ export const RIGHTS_LABEL: Record<string, string> = {
   PUBLIC_DOMAIN: 'Public domain (US)',
   LICENSED: 'Licensed',
   CREATOR_AUTHORIZED: 'Creator authorized',
-  PLATFORM_ORIGINAL: 'CineVault Original',
+  PLATFORM_ORIGINAL: 'MovieSphere Original',
   OPEN_LICENSE: 'Open licence (Creative Commons)',
   METADATA_ONLY: 'Listing only',
 }
@@ -57,7 +57,7 @@ export function licenseLabel(url: string | null) {
   return m ? `CC ${m[1].toUpperCase()} ${m[2]}` : 'See source'
 }
 
-export const ratingSourceLabel = (s: string | null | undefined) => (s === 'TMDB' ? 'TMDB user rating' : 'CineVault score')
+export const ratingSourceLabel = (s: string | null | undefined) => (s === 'TMDB' ? 'TMDB user rating' : 'MovieSphere score')
 
 export function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ')

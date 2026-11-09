@@ -8,7 +8,7 @@ import { useDebounced } from '@/lib/hooks'
 import { addSearchHistory, clearSearchHistory, getSearchHistory, removeSearchHistory } from '@/lib/searchHistory'
 import { Rating } from './ui'
 
-const QUICK = ['Sci-Fi', 'Horror', 'Comedy', 'Buster Keaton', '1927', 'Germany', 'Documentary']
+const QUICK = ['Chaplin', 'Horror', 'Film noir', 'Western', 'Hitchcock', 'Sci-Fi', '1950']
 
 /** Search overlay with debounced live suggestions, keyboard navigation and search history. */
 export function SearchOverlay({ onClose }: { onClose: () => void }) {

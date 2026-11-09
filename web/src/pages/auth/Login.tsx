@@ -35,7 +35,7 @@ export default function Login() {
   }
 
   return (
-    <AuthLayout title="Sign in" subtitle="Sync your list, ratings and playback progress across devices." footer={<>New to CineVault? <Link to="/register" className="font-semibold text-white hover:underline">Create an account</Link> · <Link to="/" className="hover:text-white">Continue as guest</Link></>}>
+    <AuthLayout title="Sign in" subtitle="Sync your list, ratings and playback progress across devices." footer={<>New to MovieSphere? <Link to="/register" className="font-semibold text-white hover:underline">Create an account</Link> · <Link to="/" className="hover:text-white">Continue as guest</Link></>}>
       <form onSubmit={submit} className="space-y-4" noValidate>
         <FormError>{error}</FormError>
         <label className="block">

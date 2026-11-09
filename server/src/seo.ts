@@ -4,7 +4,7 @@ import type { Request, Response } from 'express'
 import { env } from './lib/env.js'
 import { prisma } from './lib/prisma.js'
 
-const BRAND = process.env.BRAND_NAME ?? 'CineVault'
+const BRAND = process.env.BRAND_NAME ?? 'MovieSphere'
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 export async function sitemap(_req: Request, res: Response) {
@@ -48,7 +48,7 @@ export async function renderShell(req: Request, res: Response) {
   }
   const o = env.publicOrigin
   let title = `${BRAND} — Discover & download authorized movies`
-  let description = 'Discover, stream and download public-domain classics, licensed films and creator-authorized originals.'
+  let description = 'Stream and download free, legal movies — public-domain classics and openly licensed films.'
   let image = `${o}/icons/og-image.png`
   let jsonLd = ''
   const m = /^\/movie\/([\w-]+)/.exec(req.path)

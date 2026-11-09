@@ -75,6 +75,7 @@ export function requireAdmin(req: Request, _res: Response, next: NextFunction) {
  */
 export function csrfGuard(req: Request, _res: Response, next: NextFunction) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next()
-  if (req.get('x-cinevault') !== '1') throw new HttpError(403, 'Missing CSRF header')
+  // `x-cinevault` is the pre-rename header name, still accepted for already-open clients.
+  if (req.get('x-moviesphere') !== '1' && req.get('x-cinevault') !== '1') throw new HttpError(403, 'Missing CSRF header')
   next()
 }

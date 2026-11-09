@@ -27,7 +27,7 @@ export default function Register() {
     setBusy(true)
     try {
       await register({ username: f.username, email: f.email, password: f.password })
-      toast('Account created — welcome to CineVault!')
+      toast('Account created — welcome to MovieSphere!')
       nav('/', { replace: true })
     } catch (err) {
       setError((err as Error).message)
