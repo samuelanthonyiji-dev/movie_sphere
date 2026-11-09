@@ -16,8 +16,10 @@ export function Footer() {
           <Logo />
           <p className="mt-4 max-w-sm text-sm leading-6 text-muted">{BRAND.description}</p>
           <p className="mt-4 max-w-sm text-xs leading-5 text-subtle">
-            {BRAND.name} only distributes public-domain works, licensed films and titles uploaded or authorized by their rights holders. Artwork shown in this build is generated placeholder art.
+            {BRAND.name} only distributes public-domain works, openly licensed films and titles authorized by their rights holders. Many films and their files are provided by the{' '}
+            <a className="underline hover:text-white" href="https://archive.org/details/feature_films" target="_blank" rel="noopener noreferrer">Internet Archive</a>.
           </p>
+          <p className="mt-2 max-w-sm text-xs leading-5 text-subtle">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
         </div>
         {COLS.map((c) => (
           <nav key={c.title} aria-label={c.title}>

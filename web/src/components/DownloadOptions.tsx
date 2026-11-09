@@ -1,7 +1,7 @@
 import { AlertTriangle, CheckCircle2, Download, FileText, HardDriveDownload, Loader2, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { formatBytes, QUALITY_LABEL, RIGHTS_LABEL } from '@/lib/format'
+import { formatBytes, licenseLabel, QUALITY_LABEL, RIGHTS_LABEL } from '@/lib/format'
 import type { MovieDetail, MovieFile } from '@/lib/types'
 import { useDownloads } from '@/state/downloads'
 import { useUI } from '@/state/ui'
@@ -68,7 +68,7 @@ export function DownloadOptions({ movie }: { movie: MovieDetail }) {
           <div className="text-sm">
             <p className="font-semibold">Download currently unavailable.</p>
             <p className="mt-1 leading-6 text-muted">
-              No authorized file has been published for this title yet. {movie.rightsNote}
+              No authorized file is available for this title yet. {movie.rightsNote}
             </p>
             <p className="mt-2 text-muted">
               Rights holder? <Link to={`/contact?topic=licensing&movie=${movie.slug}`} className="text-white underline underline-offset-4">Contact us about distribution</Link>.
@@ -98,6 +98,7 @@ export function DownloadOptions({ movie }: { movie: MovieDetail }) {
                   <tr key={f.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-card/40 p-4 md:table-row md:p-0">
                     <td className="w-full md:w-auto md:px-5 md:py-4">
                       <span className="font-semibold">{QUALITY_LABEL[f.quality] ?? f.quality}</span>
+                      {f.hostedBy && <span className="mt-0.5 block text-[11px] text-subtle">Hosted by {f.hostedBy}</span>}
                     </td>
                     <td className="text-muted md:px-3"><span className="md:hidden">Size: </span>{formatBytes(f.fileSize)}</td>
                     <td className="text-muted md:px-3">{f.format.toUpperCase()}</td>
@@ -139,6 +140,7 @@ export function DownloadOptions({ movie }: { movie: MovieDetail }) {
         </div>
       )}
       <p className="mt-4 text-xs leading-5 text-subtle">
+        {movie.sourceUrl && <>Files come from the <a className="underline" href={movie.sourceUrl} target="_blank" rel="noopener noreferrer">original source page</a>{movie.license && <> under {licenseLabel(movie.license)}</>}. </>}
         “Download” saves a copy to your device via your browser. “Save offline” stores the film inside the app for offline playback; it is listed as ready only after the browser confirms it was stored.
       </p>
     </section>

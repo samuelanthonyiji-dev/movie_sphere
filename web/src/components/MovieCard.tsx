@@ -1,7 +1,7 @@
 import { Check, Download, Heart, Info, Play, Plus } from 'lucide-react'
 import { memo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { cx, qualityBadge, srcSetFor } from '@/lib/format'
+import { cx, qualityBadge, ratingSourceLabel, srcSetFor } from '@/lib/format'
 import type { MovieCard as Movie } from '@/lib/types'
 import { useLibrary } from '@/state/library'
 import { Badge, Rating } from './ui'
@@ -85,7 +85,7 @@ export const MovieCard = memo(function MovieCard({ movie, className, priority, s
               <Heart className={cx('size-3.5', fav && 'fill-accent')} />
             </button>
             <Download className={cx('mx-1 size-3.5', movie.downloadable ? 'text-success' : 'text-white/20')} aria-label={movie.downloadable ? 'Download available' : 'Download unavailable'} />
-            <Rating value={movie.rating} className="text-[11px] sm:text-xs" />
+            <Rating value={movie.rating} source={ratingSourceLabel(movie.ratingSource)} className="text-[11px] sm:text-xs" />
           </span>
         </div>
       </div>

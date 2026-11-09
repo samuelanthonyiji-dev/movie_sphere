@@ -1,7 +1,7 @@
 import { Check, Clock, Download, Info, Play, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { cx, formatRuntime, srcSetFor } from '@/lib/format'
+import { cx, formatRuntime, ratingSourceLabel, srcSetFor } from '@/lib/format'
 import { useReducedMotion } from '@/lib/hooks'
 import type { MovieCard } from '@/lib/types'
 import { useLibrary } from '@/state/library'
@@ -57,10 +57,11 @@ export function HeroBanner({ items }: { items: MovieCard[] }) {
             <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted sm:text-sm">
               {m.rightsBasis === 'PLATFORM_ORIGINAL' && <Badge tone="red">CineVault Original</Badge>}
               {m.rightsBasis === 'PUBLIC_DOMAIN' && <Badge tone="outline">Public domain</Badge>}
+              {m.rightsBasis === 'OPEN_LICENSE' && <Badge tone="outline">Creative Commons</Badge>}
               <span className="inline-flex items-center gap-1"><Clock className="size-3.5" aria-hidden />{formatRuntime(m.runtime)}{m.type === 'SERIES' && ' / ep'}</span>
             </div>
             <div className="mb-3 flex flex-wrap items-center gap-2 text-xs sm:text-sm">
-              <Rating value={m.rating} />
+              <Rating value={m.rating} source={ratingSourceLabel(m.ratingSource)} />
               <span className="text-subtle">·</span>
               <span className="text-muted">{m.year}</span>
               <span className="text-subtle">·</span>

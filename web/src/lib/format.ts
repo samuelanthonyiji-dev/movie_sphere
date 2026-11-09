@@ -30,6 +30,8 @@ export function timeAgo(iso: string) {
 }
 
 export const QUALITY_LABEL: Record<string, string> = {
+  '240p': '240p (low data)',
+  '360p': '360p',
   '480p': '480p SD',
   '720p': '720p HD',
   '1080p': '1080p Full HD',
@@ -43,8 +45,19 @@ export const RIGHTS_LABEL: Record<string, string> = {
   LICENSED: 'Licensed',
   CREATOR_AUTHORIZED: 'Creator authorized',
   PLATFORM_ORIGINAL: 'CineVault Original',
+  OPEN_LICENSE: 'Open licence (Creative Commons)',
   METADATA_ONLY: 'Listing only',
 }
+
+export function licenseLabel(url: string | null) {
+  if (!url) return null
+  if (/publicdomain\/zero/.test(url)) return 'CC0 public-domain dedication'
+  if (/publicdomain/.test(url)) return 'Public domain'
+  const m = /licenses\/(by(?:-sa)?)\/([\d.]+)/.exec(url)
+  return m ? `CC ${m[1].toUpperCase()} ${m[2]}` : 'See source'
+}
+
+export const ratingSourceLabel = (s: string | null | undefined) => (s === 'TMDB' ? 'TMDB user rating' : 'CineVault score')
 
 export function cx(...c: Array<string | false | null | undefined>) {
   return c.filter(Boolean).join(' ')

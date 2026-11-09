@@ -30,11 +30,13 @@ export interface MovieCard {
   popularity: number
   downloadCount: number
   rightsBasis: RightsBasis
+  /** null = editorial sample score; 'TMDB' = TMDB community rating */
+  ratingSource: string | null
   addedAt: string
   progress?: number
 }
 
-export type RightsBasis = 'PUBLIC_DOMAIN' | 'LICENSED' | 'CREATOR_AUTHORIZED' | 'PLATFORM_ORIGINAL' | 'METADATA_ONLY'
+export type RightsBasis = 'PUBLIC_DOMAIN' | 'LICENSED' | 'CREATOR_AUTHORIZED' | 'PLATFORM_ORIGINAL' | 'OPEN_LICENSE' | 'METADATA_ONLY'
 
 export interface MovieFile {
   id: string
@@ -45,6 +47,8 @@ export interface MovieFile {
   language: string
   downloadable: boolean
   streamable: boolean
+  /** Host serving an externally hosted authorized file (e.g. archive.org) */
+  hostedBy: string | null
   subtitles: string[]
   downloadUrl: string | null
   streamUrl: string | null
@@ -73,6 +77,9 @@ export interface MovieDetail extends MovieCard {
   cast: string[]
   production: string | null
   rightsNote: string | null
+  source: string
+  sourceUrl: string | null
+  license: string | null
   updatedAt: string
   userRating: { average: number; count: number } | null
   myRating: number | null

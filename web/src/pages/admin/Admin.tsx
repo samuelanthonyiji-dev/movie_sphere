@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BarChart3, Check, ChevronDown, ChevronUp, Film, Flag, Folder, LayoutDashboard, Loader2, Plus, Search, Trash2, Users } from 'lucide-react'
+import { BarChart3, Check, ChevronDown, ChevronUp, CloudDownload, Film, Flag, Folder, LayoutDashboard, Loader2, Plus, Search, Trash2, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, Route, Routes } from 'react-router-dom'
 import { api } from '@/lib/api'
@@ -12,6 +12,7 @@ import MovieEditor from './MovieEditor'
 const NAV = [
   { to: '/admin', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/admin/movies', label: 'Titles', icon: Film },
+  { to: '/admin/import', label: 'Import', icon: CloudDownload },
   { to: '/admin/genres', label: 'Genres', icon: Folder },
   { to: '/admin/sections', label: 'Homepage', icon: BarChart3 },
   { to: '/admin/users', label: 'Users', icon: Users },
@@ -40,6 +41,7 @@ export default function Admin() {
             <Route path="movies" element={<MoviesAdmin />} />
             <Route path="movies/new" element={<MovieEditor />} />
             <Route path="movies/:id" element={<MovieEditor />} />
+            <Route path="import" element={<ImportAdmin />} />
             <Route path="genres" element={<GenresAdmin />} />
             <Route path="sections" element={<SectionsAdmin />} />
             <Route path="users" element={<UsersAdmin />} />
@@ -368,5 +370,75 @@ function ReportsAdmin() {
         </li>
       ))}
     </ul>
+  )
+}
+
+interface ImportStatus { running: boolean; startedAt: string | null; finishedAt: string | null; target: number; processed: number; imported: number; updated: number; skipped: number; errors: string[]; message: string; tmdb: boolean }
+
+/** Pull licensed films from the Internet Archive (optionally enriched with TMDB). */
+function ImportAdmin() {
+  const qc = useQueryClient()
+  const { toast } = useUI()
+  const [limit, setLimit] = useState(50)
+  const { data } = useQuery({
+    queryKey: ['admin', 'import'],
+    queryFn: () => api.admin.get<ImportStatus>('/import'),
+    refetchInterval: (q) => (q.state.data?.running ? 2000 : false),
+  })
+  const start = async () => {
+    try {
+      await api.admin.send('/import', 'POST', { limit })
+      qc.invalidateQueries({ queryKey: ['admin', 'import'] })
+      toast('Import started — this runs in the background')
+    } catch (e) {
+      toast((e as Error).message, 'error')
+    }
+  }
+  const pct = data?.running && data.target ? Math.min(100, Math.round((data.imported / data.target) * 100)) : 0
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div className="card p-5">
+        <h2 className="text-lg font-bold">Import from the Internet Archive</h2>
+        <p className="mt-2 text-sm leading-6 text-muted">
+          Adds feature films from the Internet Archive’s <a className="underline" href="https://archive.org/details/feature_films" target="_blank" rel="noopener noreferrer">Feature Films</a> collection.
+          Only items whose licence is public domain, CC0, CC BY or CC BY-SA are imported; each keeps its licence and source link, and files are streamed and downloaded from archive.org.
+          Running it again skips titles you already have and refreshes their popularity.
+        </p>
+        <p className="mt-2 text-sm text-muted">
+          TMDB enrichment (posters, cast, genres, ratings): <strong className={data?.tmdb ? 'text-success' : 'text-gold'}>{data?.tmdb ? 'on' : 'off — set TMDB_API_KEY on the server'}</strong>
+        </p>
+        <div className="mt-5 flex flex-wrap items-end gap-3">
+          <label>
+            <span className="label">New titles to add</span>
+            <input type="number" min={1} max={1000} className="field w-32" value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
+          </label>
+          <button className="btn-primary" onClick={start} disabled={data?.running}>
+            {data?.running ? <Loader2 className="size-4 animate-spin" /> : <CloudDownload className="size-4" />} {data?.running ? 'Importing…' : 'Start import'}
+          </button>
+        </div>
+      </div>
+      {data && (data.startedAt || data.running) && (
+        <div className="card p-5" aria-live="polite">
+          <p className="text-sm font-semibold">{data.message}</p>
+          {data.running && (
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+              <div className="h-full bg-accent transition-[width]" style={{ width: `${pct}%` }} />
+            </div>
+          )}
+          <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            {([['New', data.imported], ['Refreshed', data.updated], ['Skipped', data.skipped], ['Checked', data.processed]] as const).map(([k, v]) => (
+              <div key={k}><dt className="text-xs text-subtle uppercase">{k}</dt><dd className="text-xl font-bold tabular-nums">{v}</dd></div>
+            ))}
+          </dl>
+          {data.errors.length > 0 && (
+            <details className="mt-4 text-xs text-muted">
+              <summary className="cursor-pointer">{data.errors.length} warning(s)</summary>
+              <ul className="mt-2 space-y-1">{data.errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
+            </details>
+          )}
+          <p className="mt-3 text-[11px] text-subtle">Skipped items are ones without an allowed licence, without a browser-playable file, shorter than 40 minutes, or matching the content filter.</p>
+        </div>
+      )}
+    </div>
   )
 }

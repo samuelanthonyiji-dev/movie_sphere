@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { cx } from '@/lib/format'
 
 export function Rating({ value, className, source = 'CineVault score' }: { value: number; className?: string; source?: string }) {
+  if (!value || value <= 0) return <span className={cx('text-subtle', className)} title="Not rated yet">—<span className="sr-only">Not rated</span></span>
   return (
     <span className={cx('inline-flex items-center gap-1 font-semibold text-white', className)} title={`${source}: ${value.toFixed(1)} / 10`}>
       <Star className="size-3.5 fill-gold text-gold" aria-hidden />

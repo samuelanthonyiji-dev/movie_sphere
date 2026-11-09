@@ -13,9 +13,16 @@ import { me } from './routes/me.js'
 import { media } from './routes/media.js'
 import { misc } from './routes/misc.js'
 import { renderShell, robots, sitemap } from './seo.js'
+import { scheduleImports } from './importers/index.js'
 
 // Media and artwork may be redirected to object storage (e.g. Supabase) — allow that origin.
-const storageOrigin = process.env.SUPABASE_URL ? [new URL(process.env.SUPABASE_URL).origin] : []
+const storageOrigin = [
+  ...(process.env.SUPABASE_URL ? [new URL(process.env.SUPABASE_URL).origin] : []),
+  // External catalog sources: Internet Archive (files, thumbnails) and TMDB (artwork)
+  'https://archive.org',
+  'https://*.archive.org',
+  'https://image.tmdb.org',
+]
 
 const app = express()
 // Number of proxies in front of the app (Render = 1; Vercel rewrite + Render = 2).
@@ -77,6 +84,7 @@ app.get(/^(?!\/(api|media)\/).*/, renderShell)
 app.use(errorHandler)
 
 app.listen(env.port, () => {
+  scheduleImports()
   console.log(`CineVault API listening on http://localhost:${env.port}`)
   console.log(`  storage: ${env.storageDir}`)
   console.log(`  web:     ${path.resolve(env.webDist)}`)

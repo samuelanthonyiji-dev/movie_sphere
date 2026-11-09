@@ -56,6 +56,17 @@ The service worker is only registered in production builds; PWA install requires
 - **Legal**: copyright/takedown, privacy and terms templates (have them reviewed by counsel), contact and content-report forms.
 - **Accessibility**: skip link, landmarks, labelled controls, focus-trapped modals, visible focus, reduced-motion support, captions, table view for charts.
 
+## Movie catalog from external APIs
+
+Instead of uploading films, the backend imports them from free APIs:
+
+- **[Internet Archive](https://archive.org/details/feature_films)** (no key) — the source of the films *and their files*. Only items whose declared licence is public domain, CC0, CC BY or CC BY-SA are imported (≈8,000 feature films); non-commercial/no-derivatives licences and unlicensed uploads are skipped, as are shorts (<40 min) and items matching `IMPORT_EXCLUDE_PATTERN`. Files are not copied — downloads and streams are authorized by the API, logged, then redirected to archive.org.
+- **[TMDB](https://www.themoviedb.org/settings/api)** (optional, free key) — posters, backdrops, cast, genres, certification, trailers and community ratings. Without a key, Internet Archive thumbnails and metadata are used.
+
+Run it from **Admin → Import**, with `npm run import:catalog -w server -- 100`, or automatically via env:
+`IMPORT_ON_START=true`, `IMPORT_LIMIT=150`, `IMPORT_INTERVAL_HOURS=24`, `TMDB_API_KEY=…`.
+Imports are idempotent (keyed by the Internet Archive identifier) and merge into matching existing titles.
+
 ## Deployment (Render + Supabase + Vercel)
 
 | Piece | Where | Notes |

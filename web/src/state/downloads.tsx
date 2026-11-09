@@ -116,8 +116,9 @@ export function DownloadsProvider({ children }: { children: ReactNode }) {
     put(rec)
     try {
       // Verify the file is actually available before handing it to the browser.
-      const head = await fetch(f.downloadUrl, { method: 'HEAD', credentials: 'same-origin' })
-      if (!head.ok) throw new Error(head.status === 404 ? 'Download currently unavailable.' : `Server returned ${head.status}`)
+      // `manual` so a redirect to an external host (e.g. archive.org) counts as available
+      const head = await fetch(f.downloadUrl, { method: 'HEAD', credentials: 'same-origin', redirect: 'manual' })
+      if (head.type !== 'opaqueredirect' && !head.ok) throw new Error(head.status === 404 ? 'Download currently unavailable.' : `Server returned ${head.status}`)
     } catch (e) {
       const msg = e instanceof TypeError ? 'Network error — check your connection.' : (e as Error).message
       put({ ...rec, status: 'failed', error: msg, updatedAt: now() })
@@ -185,7 +186,7 @@ export function DownloadsProvider({ children }: { children: ReactNode }) {
       notify('download', 'Available offline', `${m.title} (${f.quality}) is ready to watch offline.`)
     } catch (e) {
       const aborted = (e as DOMException).name === 'AbortError'
-      const msg = aborted ? 'Cancelled' : e instanceof TypeError ? 'Network error — the connection dropped.' : (e as DOMException).name === 'QuotaExceededError' ? 'Device storage is full.' : (e as Error).message
+      const msg = aborted ? 'Cancelled' : e instanceof TypeError ? (f.hostedBy ? `${f.hostedBy} doesn’t allow saving inside the app, or the connection dropped. Use “Download” instead.` : 'Network error — the connection dropped.') : (e as DOMException).name === 'QuotaExceededError' ? 'Device storage is full.' : (e as Error).message
       put({ ...rec, status: aborted ? 'cancelled' : 'failed', received, error: msg, updatedAt: now() })
       if (!aborted) throw new Error(msg)
     } finally {

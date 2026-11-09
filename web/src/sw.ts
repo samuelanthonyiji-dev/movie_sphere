@@ -54,6 +54,15 @@ registerRoute(
   }),
 )
 
+// External artwork (Internet Archive thumbnails, TMDB posters/backdrops) — opaque responses are fine for <img>.
+registerRoute(
+  ({ url, request }) => request.destination === 'image' && (url.hostname === 'image.tmdb.org' || (url.hostname === 'archive.org' && url.pathname.startsWith('/services/img/'))),
+  new CacheFirst({
+    cacheName: 'cv-ext-images-v1',
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] }), new ExpirationPlugin({ maxEntries: 500, maxAgeSeconds: 30 * 86400, purgeOnQuotaError: true })],
+  }),
+)
+
 // User-saved offline media: serve from cache with Range support, otherwise go to network.
 registerRoute(
   ({ url }) => url.pathname.startsWith('/media/stream/'),

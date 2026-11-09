@@ -13,7 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "media:generate": "tsx scripts/generate-sample-media.ts",
     "build:web": "cd ../web && npm run build",
-    "build:api": "prisma generate && tsc -p tsconfig.json"
+    "build:api": "prisma generate && tsc -p tsconfig.json",
+    "import:catalog": "tsx scripts/import-catalog.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

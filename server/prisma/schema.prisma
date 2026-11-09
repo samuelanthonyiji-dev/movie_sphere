@@ -32,6 +32,7 @@ enum RightsBasis {
   LICENSED
   CREATOR_AUTHORIZED
   PLATFORM_ORIGINAL
+  OPEN_LICENSE
   METADATA_ONLY
 }
 
@@ -82,6 +83,17 @@ model Movie {
   isPublished      Boolean     @default(true)
   /// Lower-cased denormalised text for search (title, original title, director, cast, country, language, genres, year)
   searchText       String      @default("")
+  /// Where the record came from: "local" (seed/admin) or "internet_archive"
+  source           String      @default("local")
+  /// Identifier at the source (e.g. Internet Archive item identifier)
+  externalId       String?     @unique
+  /// Public page at the source, for attribution
+  sourceUrl        String?
+  /// Licence URL declared by the source (e.g. Public Domain Mark, CC0, CC-BY)
+  license          String?
+  tmdbId           Int?
+  /// Who the rating comes from; null = editorial sample score
+  ratingSource     String?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
@@ -103,6 +115,7 @@ model Movie {
   @@index([createdAt])
   @@index([type])
   @@index([title])
+  @@index([source])
 }
 
 model Genre {
@@ -129,7 +142,9 @@ model MovieFile {
   format              String // mp4 | webm | hls
   mimeType            String
   fileSize            BigInt
-  storageKey          String // key inside object storage, never a public URL
+  storageKey          String? // key inside object storage, never a public URL
+  /// Authorized file hosted by an external source (e.g. archive.org); served by redirect
+  externalUrl         String?
   language            String
   authorizationStatus AuthorizationStatus @default(PENDING)
   authorizationNote   String?
@@ -148,7 +163,8 @@ model Subtitle {
   language   String
   label      String
   format     String // vtt | srt
-  storageKey String
+  storageKey String?
+  externalUrl String?
   movie      Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@index([movieId])

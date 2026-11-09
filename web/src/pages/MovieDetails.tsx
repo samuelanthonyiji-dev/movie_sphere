@@ -8,7 +8,7 @@ import { TrailerModal } from '@/components/TrailerModal'
 import { Badge, ErrorState, Rating } from '@/components/ui'
 import { BrandLoader } from '@/components/Logo'
 import { api } from '@/lib/api'
-import { cx, formatRuntime, QUALITY_LABEL, RIGHTS_LABEL, srcSetFor } from '@/lib/format'
+import { cx, formatRuntime, licenseLabel, QUALITY_LABEL, RIGHTS_LABEL, ratingSourceLabel, srcSetFor } from '@/lib/format'
 import { useDocumentTitle } from '@/lib/hooks'
 import { copyText, shareMovie } from '@/lib/share'
 import type { MovieDetail } from '@/lib/types'
@@ -78,6 +78,7 @@ function Hero({ movie }: { movie: MovieDetail }) {
         <div className="min-w-0 self-end">
           <div className="mb-3 flex flex-wrap gap-1.5">
             <Badge tone={movie.rightsBasis === 'PLATFORM_ORIGINAL' ? 'red' : 'outline'}>{RIGHTS_LABEL[movie.rightsBasis]}</Badge>
+            {movie.source === 'internet_archive' && <Badge tone="outline">Internet Archive</Badge>}
             {movie.type === 'SERIES' && <Badge>Series</Badge>}
             {movie.isNew && <Badge tone="red">New</Badge>}
             {movie.isTrending && <Badge tone="gold">Trending</Badge>}
@@ -86,7 +87,7 @@ function Hero({ movie }: { movie: MovieDetail }) {
           <h1 className="text-3xl leading-tight font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">{movie.title}</h1>
           {movie.originalTitle && movie.originalTitle !== movie.title && <p className="mt-1 text-sm text-subtle italic">{movie.originalTitle}</p>}
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
-            <Rating value={movie.rating} />
+            <Rating value={movie.rating} source={ratingSourceLabel(movie.ratingSource)} />
             <span aria-hidden>·</span>
             <span>{movie.year}</span>
             <span aria-hidden>·</span>
@@ -156,6 +157,8 @@ function Facts({ movie }: { movie: MovieDetail }) {
         <Fact label="Available resolutions">{qualities.length ? [...new Set(qualities)].join(', ') : 'None yet'}</Fact>
         <Fact label="Subtitles" icon={<Subtitles className="size-3.5" />}>{movie.subtitles.length ? movie.subtitles.map((s) => s.label).join(', ') : 'None'}</Fact>
         <Fact label="Distribution">{RIGHTS_LABEL[movie.rightsBasis]}</Fact>
+        {movie.license && <Fact label="Licence"><a className="underline hover:text-white" href={movie.license} target="_blank" rel="noopener noreferrer">{licenseLabel(movie.license)}</a></Fact>}
+        {movie.sourceUrl && <Fact label="Source"><a className="underline hover:text-white" href={movie.sourceUrl} target="_blank" rel="noopener noreferrer">{new URL(movie.sourceUrl).hostname.replace(/^www\./, '')}</a></Fact>}
       </dl>
       <Link to={`/report?movie=${movie.slug}`} className="inline-flex items-center gap-2 text-xs text-subtle hover:text-white">
         <Flag className="size-3.5" /> Report this title (copyright, broken file, other)
@@ -195,9 +198,9 @@ function UserRating({ movie }: { movie: MovieDetail }) {
     <div className="card p-4">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold tracking-wide text-subtle uppercase">CineVault score</p>
-          <p className="mt-1 text-2xl font-bold"><Rating value={movie.rating} className="text-2xl" /></p>
-          <p className="text-[11px] text-subtle">Editorial score (sample data)</p>
+          <p className="text-xs font-semibold tracking-wide text-subtle uppercase">{movie.ratingSource === 'TMDB' ? 'TMDB rating' : 'CineVault score'}</p>
+          <p className="mt-1 text-2xl font-bold"><Rating value={movie.rating} className="text-2xl" source={ratingSourceLabel(movie.ratingSource)} /></p>
+          <p className="text-[11px] text-subtle">{movie.ratingSource === 'TMDB' ? 'Community average from TMDB' : movie.rating > 0 ? 'Editorial score (sample data)' : 'No rating available'}</p>
         </div>
         <div className="text-right">
           <p className="text-xs font-semibold tracking-wide text-subtle uppercase">Member rating</p>

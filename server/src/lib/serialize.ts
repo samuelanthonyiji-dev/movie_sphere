@@ -1,7 +1,7 @@
 import type { Prisma } from '@prisma/client'
 import { num } from './http.js'
 
-export const QUALITY_ORDER = ['480p', '720p', '1080p', '2160p']
+export const QUALITY_ORDER = ['240p', '360p', '480p', '720p', '1080p', '2160p']
 
 export const cardInclude = {
   genres: { include: { genre: true } },
@@ -46,6 +46,7 @@ export function toCard(m: CardMovie) {
     popularity: m.popularity,
     downloadCount: m.downloadCount,
     rightsBasis: m.rightsBasis,
+    ratingSource: m.ratingSource,
     addedAt: m.createdAt.toISOString(),
   }
 }
@@ -70,6 +71,10 @@ export function toDetail(m: DetailMovie) {
     cast: m.cast,
     production: m.production,
     rightsNote: m.rightsNote,
+    source: m.source,
+    sourceUrl: m.sourceUrl,
+    license: m.license,
+    ratingSource: m.ratingSource,
     updatedAt: m.updatedAt.toISOString(),
     userRating: userRatings.length
       ? { average: Math.round((userRatings.reduce((a, b) => a + b, 0) / userRatings.length) * 10) / 10, count: userRatings.length }
@@ -85,6 +90,7 @@ export function toDetail(m: DetailMovie) {
         language: f.language,
         downloadable: f.downloadable && f.format !== 'hls',
         streamable: f.streamable,
+        hostedBy: f.externalUrl ? new URL(f.externalUrl).hostname.replace(/^www\./, '') : null,
         subtitles: subtitleLangs,
         downloadUrl: f.downloadable && f.format !== 'hls' ? `/media/download/${f.id}` : null,
         streamUrl: f.streamable ? (f.format === 'hls' ? `/media/hls/${f.id}/index.m3u8` : `/media/stream/${f.id}`) : null,

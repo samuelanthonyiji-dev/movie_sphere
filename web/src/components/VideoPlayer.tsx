@@ -256,7 +256,6 @@ export function VideoPlayer({ sources, subtitles = [], poster, title, startAt = 
         poster={poster ?? undefined}
         playsInline
         preload="metadata"
-        crossOrigin="anonymous"
         onPlay={() => { setPlaying(true); setStarted(true); poke() }}
         onPause={() => { setPlaying(false); setControls(true); const v = video.current; if (v && v.duration) onProgress?.(v.currentTime, v.duration) }}
         onTimeUpdate={(e) => {

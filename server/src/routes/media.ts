@@ -69,38 +69,51 @@ media.get('/download/:fileId', async (req, res) => {
   const f = await authorizedFile(req.params.fileId)
   if (!f.downloadable || f.format === 'hls') throw new HttpError(404, 'Download currently unavailable.')
   const filename = `${safeName(f.movie.title)} (${f.movie.releaseYear}) [${f.quality}].${f.format}`
+  const countIt = req.method === 'GET' && (!req.headers.range || /^bytes=0-/.test(req.headers.range))
   // Count a download once per transfer (initial request), not for every resumed range.
-  const r = req.headers.range
-  if (req.method === 'GET' && (!r || /^bytes=0-/.test(r))) {
+  if (countIt) {
     await prisma.$transaction([
       prisma.downloadEvent.create({ data: { movieId: f.movieId, fileId: f.id, userId: req.user?.id } }),
       prisma.movie.update({ where: { id: f.movieId }, data: { downloadCount: { increment: 1 } } }),
     ])
   }
+  // Authorized file hosted by its source (e.g. Internet Archive): redirect after the checks above.
+  if (f.externalUrl) {
+    res.setHeader('Cache-Control', 'no-store')
+    res.redirect(302, f.externalUrl)
+    return
+  }
+  if (!f.storageKey) throw new HttpError(404, 'Download currently unavailable.')
   // Object storage with signed URLs: hand the transfer off to the CDN after the checks above.
   if (storage.signedUrl) {
     res.setHeader('Cache-Control', 'no-store')
     res.redirect(302, await storage.signedUrl(f.storageKey, { expiresIn: 6 * 3600, download: filename }))
     return
   }
-  await sendObject(req, res, f.storageKey, f.mimeType, `attachment; filename="${filename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(filename)}`)
+  await sendObject(req, res, f.storageKey!, f.mimeType, `attachment; filename="${filename.replace(/"/g, '')}"; filename*=UTF-8''${encodeURIComponent(filename)}`)
 })
 
 media.get('/stream/:fileId', async (req, res) => {
   const f = await authorizedFile(req.params.fileId)
   if (!f.streamable || f.format === 'hls') throw new HttpError(404, 'Streaming unavailable.')
+  if (f.externalUrl) {
+    res.setHeader('Cache-Control', 'no-store')
+    res.redirect(302, f.externalUrl)
+    return
+  }
+  if (!f.storageKey) throw new HttpError(404, 'Streaming unavailable.')
   if (storage.signedUrl) {
     res.setHeader('Cache-Control', 'no-store')
     res.redirect(302, await storage.signedUrl(f.storageKey, { expiresIn: 6 * 3600 }))
     return
   }
-  await sendObject(req, res, f.storageKey, f.mimeType, 'inline')
+  await sendObject(req, res, f.storageKey!, f.mimeType, 'inline')
 })
 
 /** HLS playlist + segments live next to each other under the playlist's directory. */
 media.get('/hls/:fileId/:asset', async (req, res) => {
   const f = await authorizedFile(req.params.fileId)
-  if (f.format !== 'hls' || !f.streamable) throw new HttpError(404, 'Streaming unavailable.')
+  if (f.format !== 'hls' || !f.streamable || !f.storageKey) throw new HttpError(404, 'Streaming unavailable.')
   const asset = req.params.asset
   if (!/^[\w.-]+\.(m3u8|ts|m4s|mp4)$/.test(asset)) throw new HttpError(400, 'Invalid segment')
   const key = path.posix.join(path.posix.dirname(f.storageKey), asset)
@@ -117,9 +130,18 @@ media.get('/subtitles/:file', async (req, res) => {
   if (!m) throw new HttpError(404, 'Subtitle not found')
   const sub = await prisma.subtitle.findUnique({ where: { id: m[1] }, include: { movie: { select: { slug: true, isPublished: true } } } })
   if (!sub || !sub.movie.isPublished) throw new HttpError(404, 'Subtitle not found')
-  const chunks: Buffer[] = []
-  for await (const c of storage.read(sub.storageKey)) chunks.push(c as Buffer)
-  let text = Buffer.concat(chunks).toString('utf8')
+  let text: string
+  if (sub.externalUrl) {
+    // Only fetch from the known source host (never an arbitrary URL).
+    if (!/^https:\/\/archive\.org\//.test(sub.externalUrl)) throw new HttpError(404, 'Subtitle not found')
+    const r = await fetch(sub.externalUrl, { signal: AbortSignal.timeout(20_000) })
+    if (!r.ok) throw new HttpError(502, 'Subtitle source unavailable')
+    text = await r.text()
+  } else if (sub.storageKey) {
+    const chunks: Buffer[] = []
+    for await (const c of storage.read(sub.storageKey)) chunks.push(c as Buffer)
+    text = Buffer.concat(chunks).toString('utf8')
+  } else throw new HttpError(404, 'Subtitle not found')
   const want = m[2]
   if (want === 'vtt' && sub.format === 'srt') text = srtToVtt(text)
   res.setHeader('Content-Type', want === 'vtt' ? 'text/vtt; charset=utf-8' : 'application/x-subrip; charset=utf-8')

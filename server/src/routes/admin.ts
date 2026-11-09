@@ -10,6 +10,7 @@ import { env } from '../lib/env.js'
 import { HttpError, num, parse, str } from '../lib/http.js'
 import { prisma } from '../lib/prisma.js'
 import { buildSearchText, slugify } from '../lib/serialize.js'
+import { getImportStatus, runImport } from '../importers/index.js'
 import { storage } from '../storage/index.js'
 
 export const admin = Router()
@@ -66,7 +67,7 @@ const movieSchema = z.object({
   production: z.string().trim().max(200).nullish(),
   trailerUrl: z.string().trim().max(500).refine((v) => v === '' || v.startsWith('/') || /^https:\/\//.test(v), 'must be https:// or a site path').nullish(),
   genres: z.array(z.string()).max(10).default([]),
-  rightsBasis: z.enum(['PUBLIC_DOMAIN', 'LICENSED', 'CREATOR_AUTHORIZED', 'PLATFORM_ORIGINAL', 'METADATA_ONLY']),
+  rightsBasis: z.enum(['PUBLIC_DOMAIN', 'LICENSED', 'CREATOR_AUTHORIZED', 'PLATFORM_ORIGINAL', 'OPEN_LICENSE', 'METADATA_ONLY']),
   rightsNote: z.string().trim().max(2000).nullish(),
   featured: z.boolean().default(false),
   isPublished: z.boolean().default(true),
@@ -136,7 +137,7 @@ admin.delete('/movies/:id', async (req, res) => {
   const m = await prisma.movie.findUniqueOrThrow({ where: { id: String(req.params.id) }, include: { files: true, subtitles: true } })
   await prisma.movie.delete({ where: { id: m.id } })
   // Remove owned objects from storage (artwork and media uploaded through the dashboard).
-  const keys = [...m.files.map((f) => (f.format === 'hls' ? path.posix.dirname(f.storageKey) : f.storageKey)), ...m.subtitles.map((s) => s.storageKey)]
+  const keys = [...m.files.filter((f) => f.storageKey).map((f) => (f.format === 'hls' ? path.posix.dirname(f.storageKey!) : f.storageKey!)), ...m.subtitles.flatMap((s) => (s.storageKey ? [s.storageKey] : []))]
   for (const u of [m.posterUrl, m.backdropUrl]) if (u?.startsWith('/media/images/uploads/')) keys.push(u.slice('/media/'.length), u.slice('/media/'.length).replace(/-(780|1920)\.webp$/, (_x, s) => (s === '780' ? '-342.webp' : '-1280.webp')))
   await Promise.all(keys.map((k) => storage.remove(k).catch(() => {})))
   res.json({ ok: true })
@@ -241,7 +242,7 @@ admin.patch('/files/:id', async (req, res) => {
 
 admin.delete('/files/:id', async (req, res) => {
   const f = await prisma.movieFile.delete({ where: { id: String(req.params.id) } })
-  await storage.remove(f.format === 'hls' ? path.posix.dirname(f.storageKey) : f.storageKey).catch(() => {})
+  if (f.storageKey) await storage.remove(f.format === 'hls' ? path.posix.dirname(f.storageKey) : f.storageKey).catch(() => {})
   res.json({ ok: true })
 })
 
@@ -276,7 +277,7 @@ admin.post('/movies/:id/subtitles', textUpload.single('file'), async (req, res) 
 
 admin.delete('/subtitles/:id', async (req, res) => {
   const s = await prisma.subtitle.delete({ where: { id: String(req.params.id) } })
-  await storage.remove(s.storageKey).catch(() => {})
+  if (s.storageKey) await storage.remove(s.storageKey).catch(() => {})
   res.json({ ok: true })
 })
 
@@ -339,4 +340,15 @@ admin.get('/reports', async (_req, res) => {
 admin.patch('/reports/:id', async (req, res) => {
   const { status } = parse(z.object({ status: z.enum(['open', 'reviewing', 'resolved', 'rejected']) }), req.body)
   res.json(await prisma.contentReport.update({ where: { id: String(req.params.id) }, data: { status } }))
+})
+
+// ── External catalog import (Internet Archive + optional TMDB) ───────────
+admin.get('/import', (_req, res) => {
+  res.json(getImportStatus())
+})
+admin.post('/import', async (req, res) => {
+  const body = parse(z.object({ limit: z.number().int().min(1).max(1000).default(50), startPage: z.number().int().min(1).optional() }), req.body ?? {})
+  if (getImportStatus().running) throw new HttpError(409, 'An import is already running.')
+  runImport(body).catch(() => {}) // runs in the background; poll GET /import
+  res.status(202).json(getImportStatus())
 })
